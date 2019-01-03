@@ -6,176 +6,219 @@ Created on Tue Dec 11 16:21:06 2018
 @author: zhihuan
 """
 
+import sys, os
+sys.path.append("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM")
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
 from torch.autograd import Variable
 from torch import optim
 import numpy as np
-import math, random
 import pandas as pd
-import utils
-import LSTM
-from sklearn.metrics import auc, roc_curve, f1_score
+import utils, LSTM
+from sklearn.metrics import auc, roc_curve, f1_score, recall_score, precision_score
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-import gc
-import copy
-from sklearn.model_selection import KFold
-from sklearn import svm
-from sklearn.neural_network import MLPClassifier
-from sklearn.linear_model import LogisticRegression
-
-
-torch.cuda.manual_seed_all(666)
-torch.manual_seed(666)
-random.seed(666)
-np.random.seed(666)
-
-# Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-#device = torch.device('cpu')
-
-gc.collect()
-data = pd.read_csv("data/MIMIC_final_data_for_LSTM_20190102.csv")
-
-X, y, column_names, icustay_id = utils.preprocessing(data, series = 6, gap = 6)
-uniqueID = np.unique(icustay_id)
-index = np.random.permutation(uniqueID.shape[0])
-uniqueID = uniqueID[index]
-uniqueID_train = uniqueID[0:round(len(uniqueID)*0.9)]
-uniqueID_test = uniqueID[round(len(uniqueID)*0.9):]
-
-index_train = [i for i, val in enumerate(icustay_id) if val in uniqueID_train]
-index_test = [i for i, val in enumerate(icustay_id) if val in uniqueID_test]
-X_train = X[index_train, :, :]
-X_test = X[index_test, :, :]
-y_train = y[index_train]
-y_test = y[index_test]
-
-
-
-
-#mtds = ["logit_l1", "logit_l2", "NN_l2"]
-#X_train_reshaped = X_train.reshape(X_train.shape[0], -1)
-#X_test_reshaped = X_test.reshape(X_test.shape[0], -1)
-#for mtd in mtds:
-#    if mtd == "logit_l1":
-#        regr = LogisticRegression(penalty='l1', C=1) # 3.55
-#    if mtd == "logit_l2":
-#        regr = LogisticRegression(penalty='l2', C=1) # 4.2
-#    if mtd == "NN_l2":
-#        regr = MLPClassifier(solver='adam', alpha=1e-5, max_iter=2000, # alpha is L2 reg
-#                             hidden_layer_sizes=(64), random_state=1)
-#    
-#    regr.fit(X_train_reshaped, y_train)
-#    y_pred = regr.predict(X_test_reshaped)
-#    y_pred_proba = regr.predict_proba(X_test_reshaped)[:,1]
-#    fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
-#    print(auc(fpr, tpr))
-
-
-
-batch_size = 2**20
-dataloader = DataLoader(torch.FloatTensor(X_train), batch_size=batch_size, pin_memory=True, shuffle=False)
-lblloader = DataLoader(torch.LongTensor(y_train), batch_size=batch_size, pin_memory=True, shuffle=False)
-
-
-
-model = LSTM.LSTM(input_size = 43, hidden_size = 32, num_layers = 1, batch_size = batch_size, num_classes = 2, device = device)
-#model.hidden = model.init_hidden()
-model.to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-2, weight_decay=0) # define l2 penalty below, not at here.
-
-
-
-criterion = nn.CrossEntropyLoss()
-softmax = F.softmax
-epochs = 200
-auc_train_list = []
-auc_test_list = []
-f1_train_list = []
-f1_test_list = []
-for idx in range(epochs):
-    for data, lbl in zip(dataloader, lblloader):
-        optimizer.zero_grad()
-        data = data.to(device)
-        lbl = lbl.to(device)
-        outputs = model(data)
-        outputs_proba = softmax(outputs).cpu().data.numpy()[:,1]
-        outputs_bin = np.argmax(softmax(outputs).cpu().data.numpy(),1)
-        fpr, tpr, thresholds = roc_curve(lbl.cpu().data.numpy(), outputs_proba)
-        auc_train = auc(fpr, tpr)
-        auc_train_list.append(auc_train)
-        f1_train = f1_score(outputs_bin, lbl, average = 'macro')
-        f1_train_list.append(f1_train)
-        loss = criterion(outputs, lbl)
-        
-        loss.backward()
-        optimizer.step()
-        
-    outputs_test = model(torch.FloatTensor(X_test).to(device))
-    loss_test = criterion(outputs_test, torch.LongTensor(y_test).to(device))
-    outputs_test_proba = softmax(outputs_test).cpu().data.numpy()[:,1]
-    outputs_test_bin = np.argmax(softmax(outputs_test).cpu().data.numpy(),1)
-    fpr, tpr, thresholds = roc_curve(y_test, outputs_test_proba)
-    auc_test = auc(fpr, tpr)
-    auc_test_list.append(auc_test)
-    f1_test = f1_score(outputs_test_bin, y_test, average = 'macro')
-    f1_test_list.append(f1_test)
-    
-    print("iter: %03d, train loss: %.4f, test loss: %.4f" % (idx, loss.cpu().data.numpy(), loss_test.cpu().data.numpy()))
-    print("         , train AUC: %.4f, test AUC: %.4f" % (auc_train, auc_test))
-    print("         , train F-1: %.4f, test F-1: %.4f" % (f1_train, f1_test))
-    
-    
-    
+import gc, logging, copy, pickle, math, random, argparse, time
 import matplotlib.pyplot as plt
-plt.figure(figsize=(8,4))
-plt.plot(range(epochs), auc_train_list, "r-",linewidth=1)
-plt.plot(range(epochs), auc_test_list, "g--",linewidth=1)
-plt.legend(['train', 'test'])
-plt.xlabel("epochs")
-plt.ylabel("AUC")
-title = "AUC Curve"
-plt.title(title)
-plt.savefig("convergence.png",dpi=300)
 
-plt.figure(figsize=(8,4))
-plt.plot(fpr, tpr, color='darkorange',
-         lw=2, label='LSTM test set (AUC = %0.2f%%)' % (100*auc(fpr, tpr)))
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--num_epochs', type=int, default=200, help="Number of epochs to train for. Default: 300")
+    parser.add_argument('--verbose', default=0, type=int)
+    parser.add_argument('--run_fold', default=1, type=int)
+    parser.add_argument('--gap', default=6, type=int)
+    parser.add_argument('--results_dir', default='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190103', help="results dir")
+    return parser.parse_args()
 
-plt.axes().set_aspect('equal')
-plt.plot([0, 1], [0, 1], color='navy', lw=1, linestyle='--')
-plt.xlim([0.0, 1.0])
-plt.ylim([0.0, 1.05])
-plt.xlabel('False Positive Rate (FPR)')
-plt.ylabel('True Positive Rate (TPR)')
-plt.title('Receiver Operating Characteristic Curve')
-plt.legend(loc="lower right")
-plt.show()
-plt.savefig("test_AUC.png",dpi=300)
+if __name__=='__main__':
+    gc.collect()
+    torch.cuda.manual_seed_all(666)
+    torch.manual_seed(666)
+    random.seed(666)
+    np.random.seed(666)
+    torch.cuda.empty_cache()
+    args = parse_args()
+    criterion = nn.CrossEntropyLoss()
+    softmax = F.softmax
+    epochs = args.num_epochs
+    plt.ioff()
+#    run_fold = args.run_fold
+    
+    batch_size = 2**20
+    learning_rate = 1e-2
+    weight_decay = 0
+    
+    # Device configuration
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    #device = torch.device('cpu')
+    fname = 'Data_5folds_6_%d_1_20190103.pickle' % args.gap
+    print("Running with dataset Gap = %d" % args.gap)
+    datasets_5folds = pickle.load( open( '/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/data/' + fname, "rb" ) )
+    data_EICU = pd.read_csv("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/data/EICU_final_data_for_LSTM_20190102.csv")
 
+    for i in range(len(datasets_5folds)):
+        print("%d fold CV -- %d/%d" % (len(datasets_5folds), i+1, len(datasets_5folds)))
+#        if run_fold != i+1:
+#            continue
+        # dataset
+        TIMESTRING  = time.strftime("%Y%m%d-%H.%M.%S", time.localtime())
+        
+        results_dir_dataset = args.results_dir + '/Gap_' + str(args.gap) + \
+                                '/run_' + TIMESTRING + '_fold_' + str(i+1)
+        if not os.path.exists(results_dir_dataset):
+            os.makedirs(results_dir_dataset)
+#        if not os.path.exists(results_dir_dataset + '/find_hyperparameters'):
+#            os.makedirs(results_dir_dataset + '/find_hyperparameters')
+                
+        # create logger
+        logger = logging.getLogger(TIMESTRING)
+        logger.setLevel(logging.DEBUG)
+        # create file handler which logs even debug messages
+        fh = logging.FileHandler(results_dir_dataset+'/mainlog.log', mode='w')
+        fh.setLevel(logging.DEBUG)
+        logger.addHandler(fh)
 
-
-
-
-# =============================================================================
-# Validate EICU
-# =============================================================================
-
-data_EICU = pd.read_csv("data/EICU_final_data_for_LSTM_20190102.csv")
-X_EICU, y_EICU, column_names_EICU, icustay_id_EICU = utils.preprocessing(data_EICU, series = 6, gap = 6)
-unique, counts = np.unique(y_EICU, return_counts=True)
-
-outputs_EICU_test = model(torch.FloatTensor(X_EICU).to(device))
-outputs_EICU_test_proba = softmax(outputs_EICU_test).cpu().data.numpy()[:,1]
-outputs_EICU_test_bin = np.argmax(softmax(outputs_EICU_test).cpu().data.numpy(),1)
-fpr, tpr, thresholds = roc_curve(y_EICU, outputs_EICU_test_proba)
-auc = auc(fpr, tpr)
-f1 = f1_score(outputs_EICU_test_bin, y_EICU, average = 'macro')
-
-
-#acc = sum(outputs_EICU_test_bin)/len(y_EICU)
-
-print("AUC: %.4f; F1: %.4f" % (auc, f1))
+        logger.log(logging.INFO, "Arguments: %s" % args)
+        datasets = datasets_5folds[str(i+1)]
+        
+        X_train = np.concatenate((datasets['train']['X'], datasets['val']['X']), 0)
+        y_train = np.concatenate((datasets['train']['y'], datasets['val']['y']), 0)
+        X_test = datasets['test']['X']
+        y_test = datasets['test']['y']
+        dataloader = DataLoader(torch.FloatTensor(X_train), batch_size=batch_size, pin_memory=True, shuffle=False)
+        lblloader = DataLoader(torch.LongTensor(y_train), batch_size=batch_size, pin_memory=True, shuffle=False)
+    # =============================================================================
+    #     Model
+    # =============================================================================
+        model = LSTM.LSTM(input_size = 43, hidden_size = 32, num_layers = 1, batch_size = batch_size, num_classes = 2, device = device)
+        #model.hidden = model.init_hidden()
+        model.to(device)
+        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay) # define l2 penalty below, not at here.
+        
+        text_file = open(results_dir_dataset + "/parameter_setting.txt", "w")
+        text_file.write(str(model) + "\n")
+        text_file.write(str(optimizer) + "\n")
+        text_file.write("Gap: %d\n" % args.gap)
+        text_file.write("Batch size: %d\n" % batch_size)
+        text_file.write("Number of Epochs: %d\n" % epochs)
+        text_file.close()
+        
+        
+        auc_train_list, auc_test_list, f1_train_list, f1_test_list, \
+            precision_test_list, recall_test_list = [], [], [], [], [], []
+        for idx in range(epochs):
+            for data, lbl in zip(dataloader, lblloader):
+                optimizer.zero_grad()
+                data = data.to(device)
+                lbl = lbl.to(device)
+                outputs = model(data)
+                outputs_proba = softmax(outputs).cpu().data.numpy()[:,1]
+                outputs_bin = np.argmax(softmax(outputs).cpu().data.numpy(),1)
+                fpr, tpr, thresholds = roc_curve(lbl.cpu().data.numpy(), outputs_proba)
+                auc_train = auc(fpr, tpr)
+                auc_train_list.append(auc_train)
+                f1_train = f1_score(outputs_bin, lbl, average = 'macro')
+                f1_train_list.append(f1_train)
+                loss = criterion(outputs, lbl)
+                
+                loss.backward()
+                optimizer.step()
+                
+            outputs_test = model(torch.FloatTensor(X_test).to(device))
+            loss_test = criterion(outputs_test, torch.LongTensor(y_test).to(device))
+            outputs_test_proba = softmax(outputs_test).cpu().data.numpy()[:,1]
+            outputs_test_bin = np.argmax(softmax(outputs_test).cpu().data.numpy(),1)
+            fpr, tpr, thresholds = roc_curve(y_test, outputs_test_proba)
+            auc_test = auc(fpr, tpr)
+            auc_test_list.append(auc_test)
+            f1_test = f1_score(outputs_test_bin, y_test, average = 'macro')
+            f1_test_list.append(f1_test)
+            precision = precision_score(y_test, outputs_test_bin, average = 'macro')
+            precision_test_list.append(precision)
+            recall = recall_score(y_test, outputs_test_bin, average = 'macro')
+            recall_test_list.append(recall)
+            
+            print("iter: %03d, train loss: %.8f, test loss: %.8f" % (idx, loss.cpu().data.numpy(), loss_test.cpu().data.numpy()))
+            print("         , train AUC: %.8f, test AUC: %.8f" % (auc_train, auc_test))
+            print("         , train F-1: %.8f, test F-1: %.8f" % (f1_train, f1_test))
+            logger.log(logging.INFO, "iter: %03d, train loss: %.8f, test loss: %.8f" % (idx, loss.cpu().data.numpy(), loss_test.cpu().data.numpy()))
+            logger.log(logging.INFO, "         , train AUC: %.8f, test AUC: %.8f" % (auc_train, auc_test))
+            logger.log(logging.INFO, "         , train F-1: %.8f, test F-1: %.8f" % (f1_train, f1_test))
+        
+        
+        
+        with open(results_dir_dataset + '/model.pickle', 'wb') as handle:
+            pickle.dump(model.state_dict(), handle, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(results_dir_dataset + '/outputs_test_proba.pickle', 'wb') as handle:
+            pickle.dump(outputs_test_proba, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(results_dir_dataset + '/outputs_test_bin.pickle', 'wb') as handle:
+            pickle.dump(outputs_test_bin, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            
+        res_table = pd.DataFrame(list(zip(auc_train_list, auc_test_list, f1_train_list, f1_test_list, precision_test_list, recall_test_list)))
+        res_table.columns = ['auc_train', 'auc_test', 'f1_train', 'f1_test', 'precision_test', 'recall_test']
+        res_table.to_csv(results_dir_dataset + '/MIMIC_AFPR_table.csv')
+        
+        plt.figure(figsize=(8,4))
+        plt.plot(range(epochs), auc_train_list, "r-",linewidth=1)
+        plt.plot(range(epochs), auc_test_list, "g--",linewidth=1)
+        plt.legend(['train', 'test'])
+        plt.xlabel("epochs")
+        plt.ylabel("AUC")
+        plt.title("AUC Curve")
+        plt.savefig(results_dir_dataset + "/MIMIC_convergence.png",dpi=300)
+        
+        plt.figure(figsize=(8,4))
+        plt.plot(fpr, tpr, color='darkorange',
+                 lw=2, label='LSTM test set (AUC = %0.4f%%)' % (100*auc(fpr, tpr)))
+        
+        plt.axes().set_aspect('equal')
+        plt.plot([0, 1], [0, 1], color='navy', lw=1, linestyle='--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate (FPR)')
+        plt.ylabel('True Positive Rate (TPR)')
+        plt.title('Receiver Operating Characteristic Curve')
+        plt.legend(loc="lower right")
+#        plt.show()
+        plt.savefig(results_dir_dataset + "/MIMIC_test_AUC.png",dpi=300)
+    
+        # =============================================================================
+        # Validate EICU
+        # =============================================================================
+        
+        X_EICU, y_EICU, column_names_EICU, icustay_id_EICU = \
+            utils.preprocessing(data_EICU, series = 6, gap = args.gap)
+#        unique, counts = np.unique(y_EICU, return_counts=True)
+        outputs_EICU_test = model(torch.FloatTensor(X_EICU).to(device))
+        outputs_EICU_test_proba = softmax(outputs_EICU_test).cpu().data.numpy()[:,1]
+        outputs_EICU_test_bin = np.argmax(softmax(outputs_EICU_test).cpu().data.numpy(),1)
+        
+        with open(results_dir_dataset + '/outputs_EICU_test_proba.pickle', 'wb') as handle:
+            pickle.dump(outputs_EICU_test_proba, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(results_dir_dataset + '/outputs_EICU_test_bin.pickle', 'wb') as handle:
+            pickle.dump(outputs_EICU_test_bin, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            
+        fpr, tpr, thresholds = roc_curve(y_EICU, outputs_EICU_test_proba)
+        auc_EICU = auc(fpr, tpr)
+        f1 = f1_score(outputs_EICU_test_bin, y_EICU, average = 'macro')
+        precision = precision_score(y_EICU, outputs_EICU_test_bin, average = 'macro')
+        recall = recall_score(y_EICU, outputs_EICU_test_bin, average = 'macro')
+        
+        print("EICU AUC: %.8f; Macro F1: %.8f; Precision: %.8f; Recall: %.8f" % (auc_EICU, f1, precision, recall))
+        logger.log(logging.INFO, "EICU AUC: %.8f; Macro F1: %.8f; Precision: %.8f; Recall: %.8f" % (auc_EICU, f1, precision, recall))
+        
+        plt.figure(figsize=(8,8))
+        plt.plot(fpr, tpr, color='darkorange',
+                 lw=2, label='LSTM EICU set (AUC = %0.4f%%)' % (100*auc(fpr, tpr)))
+        plt.axes().set_aspect('equal')
+        plt.plot([0, 1], [0, 1], color='navy', lw=1, linestyle='--')
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate (FPR)')
+        plt.ylabel('True Positive Rate (TPR)')
+        plt.title('Receiver Operating Characteristic Curve (EICU)')
+        plt.legend(loc="lower right")
+#        plt.show()
+        plt.savefig(results_dir_dataset + "/EICU_AUC.png",dpi=300)
+        

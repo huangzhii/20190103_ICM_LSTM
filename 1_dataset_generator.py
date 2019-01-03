@@ -40,7 +40,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 gc.collect()
 data = pd.read_csv("data/MIMIC_final_data_for_LSTM_20190102.csv")
-X, y, column_names, icustay_id = utils.preprocessing(data, series = 6, gap = 6)
+gap = 6
+X, y, column_names, icustay_id = utils.preprocessing(data, series = 6, gap = gap)
 uniqueID = np.unique(icustay_id)
 
 #index = np.random.permutation(uniqueID.shape[0])
@@ -95,5 +96,5 @@ processed_dir = '/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/da
 
 
 #### git ignore all pickle data, since they are too large!
-with open(processed_dir + '/Data_5folds_20190103.pickle', 'wb') as handle:
+with open(processed_dir + '/Data_5folds_6_%d_1_20190103.pickle' % gap, 'wb') as handle:
     pickle.dump(datasets_folds, handle, protocol=pickle.HIGHEST_PROTOCOL)
