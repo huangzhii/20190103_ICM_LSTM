@@ -3,8 +3,118 @@ library(reshape2)
 library(gridExtra)
 library(cowplot)
 library(reticulate)
+source("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/utils.R")
 
-setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190103")
+setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results")
+result_folders = dir(".")
+result_folders = grep("LSTM", result_folders, value=TRUE)
+
+rown = c("Gap1","Gap2","Gap3","Gap4","Gap5","Gap6")
+coln = c("fold1","fold2","fold3","fold4","fold5")
+MIMIC.lstm.auc_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+MIMIC.lstm.f1_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+MIMIC.lstm.P_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+MIMIC.lstm.R_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+EICU.lstm.auc_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+EICU.lstm.f1_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+EICU.lstm.P_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+EICU.lstm.R_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+
+i = 0
+for (model in result_folders){
+  message(model)
+  i = i+1
+  j = 0
+  gaps = grep("Gap", dir(model), value=TRUE)
+  for (gap in gaps){
+    j = j+1
+    k = 0
+    for (fold in dir(paste(model, gap, sep = "/"))){
+      k = k+1
+      # message(fold)
+      tbl = read.csv(paste(model, gap, fold, 'MIMIC_AFPR_table.csv', sep = '/'), row.names = 1)
+      auc.train = tbl[dim(tbl)[1], 1]
+      auc.test = tbl[dim(tbl)[1], 2]
+      f1.train = tbl[dim(tbl)[1], 3]
+      f1.test = tbl[dim(tbl)[1], 4]
+      precision.test = tbl[dim(tbl)[1], 5]
+      recall.test = tbl[dim(tbl)[1], 6]
+      MIMIC.lstm.auc_mat[k,j,i] = auc.test
+      MIMIC.lstm.f1_mat[k,j,i] = f1.test
+      MIMIC.lstm.P_mat[k,j,i] = precision.test
+      MIMIC.lstm.R_mat[k,j,i] = recall.test
+      #EICU
+      lines <- readLines(paste(model, gap, fold, "mainlog.log", sep = "/"))
+      lines = lines[length(lines)]
+      EICU.res = as.numeric(unlist(regmatches(lines,gregexpr("[[:digit:]]+\\.*[[:digit:]]*",lines))))
+      EICU.lstm.auc_mat[k,j,i] = EICU.res[1]
+      EICU.lstm.f1_mat[k,j,i] = EICU.res[3]
+      EICU.lstm.P_mat[k,j,i] = EICU.res[4]
+      EICU.lstm.R_mat[k,j,i] = EICU.res[5]
+    }
+  }
+}
+
+
+modelcompareplot <- function(tensor.in, my.title, my.ylabel){
+  m.melt = NULL
+  for (i in 1:length(result_folders)){
+    melted = tensor.in[,,i]
+    colnames(melted) = rown
+    rownames(melted) = coln
+    melted = melt(melted)
+    melted = cbind(rep(result_folders[i], dim(melted)[1]), melted)
+    colnames(melted)[1] = "Model"
+    m.melt = rbind(m.melt, melted)
+  }
+  # p <- ggplot(m.melt, aes(x=Var2, y=value, fill = Model)) + 
+  #   geom_boxplot(width=0.6, color="black", size = 0.7, outlier.shape = 21)
+  
+  p <- ggplot(m.melt, aes(x=Var2, y=value, fill = Model)) + 
+    geom_boxplot(width=0.6, color="black", size = 0.5, outlier.shape = 21) +
+    theme_gray() +
+    labs(title = my.title, x = "", y = my.ylabel) +
+    theme(axis.text.x = element_text(size=12),
+          plot.title = element_text(size=14, face="bold", hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5),
+          legend.position="bottom"
+    )
+  return(p)
+}
+p11 <- modelcompareplot(MIMIC.lstm.auc_mat, "LSTM Model with Different Architecture (MIMIC Test Set)", "AUC")
+p12 <- modelcompareplot(MIMIC.lstm.f1_mat, "LSTM Model with Different Architecture (MIMIC Test Set)", "F1 Score")
+# modelcompareplot(MIMIC.lstm.P_mat)
+# modelcompareplot(MIMIC.lstm.R_mat)
+p13 <- modelcompareplot(EICU.lstm.auc_mat, "LSTM Model with Different Architecture (EICU Test Set)", "AUC")
+p14 <- modelcompareplot(EICU.lstm.f1_mat, "LSTM Model with Different Architecture (EICU Test Set)", "F1 Score")
+# modelcompareplot(EICU.lstm.P_mat)
+# modelcompareplot(EICU.lstm.R_mat)
+
+Fig1 <- plot_grid(p11, p12, p13, p14, nrow=2, labels = c("A", "B", "C", "D"), align = "h")
+ggsave("Figs and Tables/Fig1_LSTM_Model_Architecture_Compare.png", plot = Fig1,
+       width = 15, height = 10, units = "in", dpi=1200)
+
+
+merge.f1.mat = apply(MIMIC.lstm.f1_mat, 3, function(x) unlist(x))
+colnames(merge.f1.mat) = result_folders
+res = ppttest(merge.f1.mat)
+pw.pttest.t = res[[1]]
+pw.pttest.pval = res[[2]]
+table = NULL
+table.colnames = NULL
+for (i in 1:dim(pw.pttest.t)[2]){
+  table = cbind(table, cbind(pw.pttest.t[,i], pw.pttest.pval[,i]))
+  table.colnames = c(table.colnames, paste(colnames(pw.pttest.t)[i], "(t)"),
+              paste(colnames(pw.pttest.pval)[i], "(p)"))
+}
+colnames(table) = table.colnames
+write.table(table, "Figs and Tables/LSTM_architecture_comparison_ppttest (MIMIC F1 Test Set).csv", sep = ",", col.names = NA)
+
+
+################ Choose the best LSTM model
+
+
+setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_16_3")
 result_folders = dir(".")
 result_folders = grep("Gap", result_folders, value=TRUE)
 
@@ -56,64 +166,44 @@ for (folders in result_folders){
   }
 }
 
-mat = t(MIMIC.auc_mat)
-p1 <- ggplot(melt(as.matrix(mat)), aes(x=Var2, y=value, fill = Var2)) + 
-  geom_boxplot(width=0.2, color="black", size = 0.7, outlier.shape = 21) +
-  theme_bw() +
-  # scale_y_continuous(limits = c(0.52, 1)) +
-  labs(title = "AUC (MIMIC) with Different Gap Hours",
-       x = "", y = "AUC", fill = "Datasets") +
-  theme(axis.text.x = element_text(size=12),
-    plot.title = element_text(size=14, face="bold", hjust = 0.5),
-    plot.subtitle = element_text(hjust = 0.5),
-    legend.position="none"
-  ) +
-  scale_fill_brewer(palette="RdYlBu") + 
-  annotate("point", color = "blue", x = 1:dim(mat)[2], y = apply(mat, 2, median)) + 
-  annotate("text", color = "black", x = 1:dim(mat)[2], y = 0.75, label = sprintf("Mean: %.4f", colMeans(mat))) +
-  annotate("text", color = "blue", x = 1:dim(mat)[2], y = apply(mat, 2, median)-0.02, label = sprintf("Median: %.4f", apply(mat, 2, median)))
-p1
 
-mat = t(EICU.auc_mat)
-p2 <- ggplot(melt(as.matrix(mat)), aes(x=Var2, y=value, fill = Var2)) + 
-  geom_boxplot(width=0.2, color="black", size = 0.7, outlier.shape = 21) +
-  theme_bw() +
-  # scale_y_continuous(limits = c(0.52, 1)) +
-  labs(title = "AUC (EICU) with Different Gap Hours",
-       x = "", y = "AUC", fill = "Datasets") +
-  theme(axis.text.x = element_text(size=12),
-    plot.title = element_text(size=14, face="bold", hjust = 0.5),
-    plot.subtitle = element_text(hjust = 0.5),
-    legend.position="none"
-  ) +
-  scale_fill_brewer(palette="RdYlBu") + 
-  annotate("point", color = "blue", x = 1:dim(mat)[2], y = apply(mat, 2, median)) + 
-  annotate("text", color = "black", x = 1:dim(mat)[2], y = 0.65,
-           label = sprintf("Mean: %.4f", colMeans(mat))) +
-  annotate("text", color = "blue", x = 1:dim(mat)[2], y = apply(mat, 2, median)-0.02,
-           label = sprintf("Median: %.4f", apply(mat, 2, median)))
-p2
+LSTM_performance_plot <- function(mat, title, ylabel){
+  p <- ggplot(melt(as.matrix(mat)), aes(x=Var2, y=value, fill = Var2)) + 
+    geom_boxplot(width=0.2, color="black", size = 0.7, outlier.shape = 21) +
+    theme_gray() +
+    # scale_y_continuous(limits = c(0.52, 1)) +
+    labs(title = title,
+         x = "", y = ylabel, fill = "Datasets") +
+    theme(axis.text.x = element_text(size=12),
+          plot.title = element_text(size=14, face="bold", hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5),
+          legend.position="none"
+    ) +
+    scale_fill_brewer(palette="Oranges") + 
+    annotate("point", color = "blue", x = 1:dim(mat)[2], y = apply(mat, 2, median)) + 
+    annotate("text", color = "black", x = 1:dim(mat)[2], y = min(mat)-0.1, label = sprintf("Mean: %.4f", colMeans(mat))) +
+    annotate("text", color = "blue", x = 1:dim(mat)[2], y = apply(mat, 2, median)-0.02, label = sprintf("Median: %.4f", apply(mat, 2, median)))
+  return(p)
+}
 
-Fig1 <- plot_grid(p1, p2, nrow=1, labels = c("A", "B"), align = "h", rel_widths=c(1,1))
-Fig1
-ggsave("Fig1.png", plot = Fig1, width = 15, height = 4, units = "in", dpi=1200)
+p21 <- LSTM_performance_plot(t(MIMIC.auc_mat), "LSTM AUC Performance with Different Gap Hours (MIMIC Test Set)", "AUC")
+p22 <- LSTM_performance_plot(t(MIMIC.f1_mat), "LSTM F1 Score with Different Gap Hours (MIMIC Test Set)", "F1 Score")
+p23 <- LSTM_performance_plot(t(EICU.auc_mat), "LSTM AUC Performance with Different Gap Hours (EICU Test Set)", "AUC")
+p24 <- LSTM_performance_plot(t(EICU.f1_mat), "LSTM F1 Score with Different Gap Hours (EICU Test Set)", "F1 Score")
 
-rbind(
-  rowMeans(MIMIC.auc_mat),
-  rowMeans(MIMIC.f1_mat),
-  rowMeans(MIMIC.P_mat),
-  rowMeans(MIMIC.R_mat),
-  rowMeans(EICU.auc_mat),
-  rowMeans(EICU.f1_mat),
-  rowMeans(EICU.P_mat),
-  rowMeans(EICU.R_mat))
+Fig2 <- plot_grid(p21, p22, p23, p24, nrow=2, labels = c("A", "B", "C", "D"), align = "h")
+Fig2
+ggsave("../Figs and Tables/Fig2.png", plot = Fig2, width = 15, height = 10, units = "in", dpi=1200)
+
 
 ###############################
 # Traditional Models
 ###############################
 setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/Traditional_20190103/")
 result_folders = dir(".")
+result_folders = result_folders[!result_folders %in% c("AdaBoost", "GBC", "logit_l2 (all, not use)")] # exclude ensemble methods
 # result_folders = grep("_", result_folders, value=TRUE)
+
 
 rown = c("Gap1","Gap2","Gap3","Gap4","Gap5","Gap6")
 coln = c("fold1","fold2","fold3","fold4","fold5")
@@ -160,73 +250,78 @@ for (model in result_folders){
   }
 }
 
-######## MIMIC - AUC
-
-MIMIC.auc_mat.melt = melt(t(MIMIC.auc_mat))
-MIMIC.auc.all.melt = cbind(rep("LSTM", dim(MIMIC.auc_mat.melt)[1]), MIMIC.auc_mat.melt)
-colnames(MIMIC.auc.all.melt)[1] = "Model"
-for (i in 1:length(result_folders)){
-  melted = MIMIC.trad.auc_mat[,,i]
-  colnames(melted) = rown
-  rownames(melted) = coln
-  melted = melt(melted)
-  melted = cbind(rep(result_folders[i], dim(melted)[1]), melted)
-  colnames(melted)[1] = "Model"
-  MIMIC.auc.all.melt = rbind(MIMIC.auc.all.melt, melted)
+modelcompareplot_with_trad <- function(lstm.mat.in, traditional.tensor.in, model.names, my.title, my.ylabel){
+  mat.melt = melt(lstm.mat.in)
+  all.melt = cbind(rep("LSTM", dim(mat.melt)[1]), mat.melt)
+  colnames(all.melt)[1] = "Model"
+  # construct gap - model matrix contains t-test (paired) p-value
+  # gap.model.pval = data.frame(matrix(NA, nrow = dim(traditional.tensor.in)[3], ncol = dim(lstm.mat.in)[2]))
+  # gap.model.pval.symbol = data.frame(matrix(" ", nrow = dim(traditional.tensor.in)[3], ncol = dim(lstm.mat.in)[2]))
+  for (i in 1:dim(traditional.tensor.in)[3]){
+    # for (j in 1:dim(lstm.mat.in)[2]){#Gaps
+    #   t1 = mat.melt[mat.melt$Var2 == sprintf("Gap%d",j),]$value
+    #   t2 = traditional.tensor.in[,j,i]
+    #   pval = t.test(t1, t2, paired=T, conf.level=0.95)$p.value
+    #   gap.model.pval[i,j] = pval
+    #   if (pval < 0.05){
+    #     gap.model.pval.symbol[i,j] = "*"
+    #   }
+    # }
+    melted = traditional.tensor.in[,,i]
+    colnames(melted) = rown
+    rownames(melted) = coln
+    melted = melt(melted)
+    melted = cbind(rep(model.names[i+1], dim(melted)[1]), melted)
+    colnames(melted)[1] = "Model"
+    all.melt = rbind(all.melt, melted)
+  }
+  p <- ggplot(all.melt, aes(x=Var2, y=value, fill = Model)) + 
+    geom_boxplot(width=0.6, color="black", size = 0.5, outlier.shape = NA) +
+    theme_gray() +
+    labs(title = my.title, x = "", y = my.ylabel) +
+    theme(axis.text.x = element_text(size=12),
+          plot.title = element_text(size=14, face="bold", hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5),
+          legend.position="bottom"
+    ) +
+    guides(fill=guide_legend(nrow=2,byrow=TRUE))
+    # scale_fill_brewer(palette="RdYlBu") + 
+    # annotate("text", color = "black", x = 1:dim(lstm.mat.in)[2], y = apply(lstm.mat.in, 2, max),
+    #          label = "*")
+  return(p)
 }
-p31 <- ggplot(MIMIC.auc.all.melt, aes(x=Var2, y=value, fill = Model)) + 
-  geom_boxplot(width=0.2, color="black", size = 0.7, outlier.shape = 21)
-p31
 
-######## MIMIC - F1
+print(result_folders)
+model.names = c("LSTM", "Logistic Regression (L1)", "Logistic Regression (L2)",
+                "Neural Network", "Random Forest Classifier")
+p31 <- modelcompareplot_with_trad(t(MIMIC.auc_mat), MIMIC.trad.auc_mat, model.names,
+                                  "Model Performance (AUC) with Different Gap Hours (MIMIC Test Set)", "AUC")
+p32 <- modelcompareplot_with_trad(t(MIMIC.f1_mat), MIMIC.trad.f1_mat, model.names,
+                                  "Model Performance (F1 Score) with Different Gap Hours (MIMIC Test Set)", "F1 Score")
+p33 <- modelcompareplot_with_trad(t(EICU.auc_mat), EICU.trad.auc_mat, model.names,
+                                  "Model Performance (AUC) with Different Gap Hours (EICU Test Set)", "AUC")
+p34 <- modelcompareplot_with_trad(t(EICU.f1_mat), EICU.trad.f1_mat, model.names,
+                                  "Model Performance (F1) Score with Different Gap Hours (EICU Test Set)", "F1 Score")
 
-MIMIC.f1_mat.melt = melt(t(MIMIC.f1_mat))
-MIMIC.f1.all.melt = cbind(rep("LSTM", dim(MIMIC.auc_mat.melt)[1]), MIMIC.auc_mat.melt)
-colnames(MIMIC.f1.all.melt)[1] = "Model"
-for (i in 1:length(result_folders)){
-  melted = MIMIC.trad.f1_mat[,,i]
-  colnames(melted) = rown
-  rownames(melted) = coln
-  melted = melt(melted)
-  melted = cbind(rep(result_folders[i], dim(melted)[1]), melted)
-  colnames(melted)[1] = "Model"
-  MIMIC.f1.all.melt = rbind(MIMIC.f1.all.melt, melted)
+Fig3 <- plot_grid(p31, p32, p33, p34, nrow=2, labels = c("A", "B", "C", "D"), align = "h")
+Fig3
+ggsave("../Figs and Tables/Fig3.png", plot = Fig3, width = 15, height = 10, units = "in", dpi=1200)
+
+# pairwise paired t-test
+merge.f1.mat = apply(MIMIC.trad.f1_mat, 3, function(x) unlist(x))
+merge.f1.mat = cbind(unlist(data.frame(t(MIMIC.f1_mat))), merge.f1.mat)
+colnames(merge.f1.mat) = model.names
+res = ppttest(merge.f1.mat)
+pw.pttest.t = res[[1]]
+pw.pttest.pval = res[[2]]
+table = NULL
+table.colnames = NULL
+for (i in 1:dim(pw.pttest.t)[2]){
+  table = cbind(table, cbind(pw.pttest.t[,i], pw.pttest.pval[,i]))
+  table.colnames = c(table.colnames, paste(colnames(pw.pttest.t)[i], "(t)"),
+                     paste(colnames(pw.pttest.pval)[i], "(p)"))
 }
-p32 <- ggplot(MIMIC.f1.all.melt, aes(x=Var2, y=value, fill = Model)) + 
-  geom_boxplot(width=0.2, color="black", size = 0.7, outlier.shape = 21)
-p32
-
-######## EICU - AUC
+colnames(table) = table.colnames
+write.table(table, "../Figs and Tables/Model_comparison_ppttest (MIMIC F1 Test Set).csv", sep = ",", col.names = NA)
 
 
-EICU.auc_mat.melt = melt(t(EICU.auc_mat))
-EICU.auc.all.melt = cbind(rep("LSTM", dim(EICU.auc_mat.melt)[1]), EICU.auc_mat.melt)
-colnames(EICU.auc.all.melt)[1] = "Model"
-for (i in 1:length(result_folders)){
-  melted = EICU.trad.auc_mat[,,i]
-  colnames(melted) = rown
-  rownames(melted) = coln
-  melted = melt(melted)
-  melted = cbind(rep(result_folders[i], dim(melted)[1]), melted)
-  colnames(melted)[1] = "Model"
-  EICU.auc.all.melt = rbind(EICU.auc.all.melt, melted)
-}
-p41 <- ggplot(EICU.auc.all.melt, aes(x=Var2, y=value, fill = Model)) + 
-  geom_boxplot(width=0.2, color="black", size = 0.7, outlier.shape = 21)
-p41
-
-EICU.f1_mat.melt = melt(t(EICU.f1_mat))
-EICU.f1_mat.melt = cbind(rep("LSTM", dim(EICU.f1_mat.melt)[1]), EICU.f1_mat.melt)
-colnames(EICU.f1_mat.melt)[1] = "Model"
-for (i in 1:length(result_folders)){
-  melted = EICU.trad.f1_mat[,,i]
-  colnames(melted) = rown
-  rownames(melted) = coln
-  melted = melt(melted)
-  melted = cbind(rep(result_folders[i], dim(melted)[1]), melted)
-  colnames(melted)[1] = "Model"
-  EICU.f1_mat.melt = rbind(EICU.f1_mat.melt, melted)
-}
-p42 <- ggplot(EICU.f1_mat.melt, aes(x=Var2, y=value, fill = Model)) + 
-  geom_boxplot(width=0.2, color="black", size = 0.7, outlier.shape = 21)
-p42

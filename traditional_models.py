@@ -56,7 +56,6 @@ if __name__=='__main__':
     data_EICU = pd.read_csv("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/data/EICU_final_data_for_LSTM_20190102.csv")
 
     mtds = ["logit_l1", "logit_l2", "NN_l2", "SVC", "AdaBoost", "GBC", "RFC"]
-    mtds = ["AdaBoost", "GBC", "RFC"]
     
     for mtd in mtds:
         if mtd == "logit_l1": # around 8 mins for all folds
