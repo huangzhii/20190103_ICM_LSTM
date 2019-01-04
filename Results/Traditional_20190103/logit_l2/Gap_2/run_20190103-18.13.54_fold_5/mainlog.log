@@ -1,0 +1,3 @@
+Arguments: Namespace(gap=2, num_epochs=200, results_dir='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/Traditional_20190103', run_fold=1, verbose=0)
+[MIMIC] train AUC: 0.94622716, test AUC: 0.77129397, train F1: 0.83198456, test F1: 0.68154954, test Precision: 0.67030191, test Recall: 0.72059998
+[EICU] AUC: 0.74352941; Macro F1: 0.31968662; Precision: 0.50940172; Recall: 0.62017050

@@ -65,7 +65,7 @@ if __name__=='__main__':
         if mtd == "NN_l2":
             regr = MLPClassifier(solver='adam', alpha=1e-5, max_iter=2000, # alpha is L2 reg
                                  hidden_layer_sizes=(64), random_state=1)
-        if mtd == "SVC":
+        if mtd == "SVC": #slow
             regr = SVC(kernel='linear', C=1, probability = True)
         if mtd == "AdaBoost":
             regr = AdaBoostClassifier(n_estimators=100)

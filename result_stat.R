@@ -2,6 +2,7 @@ library(ggplot2)
 library(reshape2)
 library(gridExtra)
 library(cowplot)
+library(reticulate)
 
 setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190103")
 result_folders = dir(".")
@@ -98,11 +99,112 @@ Fig1
 ggsave("Fig1.png", plot = Fig1, width = 15, height = 4, units = "in", dpi=1200)
 
 rbind(
-rowMeans(MIMIC.auc_mat),
-rowMeans(MIMIC.f1_mat),
-rowMeans(MIMIC.P_mat),
-rowMeans(MIMIC.R_mat),
-rowMeans(EICU.auc_mat),
-rowMeans(EICU.f1_mat),
-rowMeans(EICU.P_mat),
-rowMeans(EICU.R_mat))
+  rowMeans(MIMIC.auc_mat),
+  rowMeans(MIMIC.f1_mat),
+  rowMeans(MIMIC.P_mat),
+  rowMeans(MIMIC.R_mat),
+  rowMeans(EICU.auc_mat),
+  rowMeans(EICU.f1_mat),
+  rowMeans(EICU.P_mat),
+  rowMeans(EICU.R_mat))
+
+###############################
+# Traditional Models
+###############################
+setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/Traditional_20190103/")
+result_folders = dir(".")
+result_folders = grep("_", result_folders, value=TRUE)
+
+rown = c("Gap1","Gap2","Gap3","Gap4","Gap5","Gap6")
+coln = c("fold1","fold2","fold3","fold4","fold5")
+MIMIC.trad.auc_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+MIMIC.trad.f1_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+MIMIC.trad.P_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+MIMIC.trad.R_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+EICU.trad.auc_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+EICU.trad.f1_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+EICU.trad.P_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+EICU.trad.R_mat = array(NA, c(length(coln), length(rown), length(result_folders)))
+
+i = 0
+for (model in result_folders){
+  message(model)
+  i = i+1
+  j = 0
+  for (gap in dir(model)){
+    j = j+1
+    k = 0
+    for (fold in dir(paste(model, gap, sep = "/"))){
+      k = k+1
+      # message(fold)
+      tbl = read.csv(paste(model, gap, fold, 'MIMIC_AFPR_table.csv', sep = '/'), row.names = 1)
+      auc.train = tbl[1, 1]
+      auc.test = tbl[2, 1]
+      f1.train = tbl[3, 1]
+      f1.test = tbl[4, 1]
+      precision.test = tbl[5, 1]
+      recall.test = tbl[6, 1]
+      MIMIC.trad.auc_mat[k,j,i] = auc.test
+      MIMIC.trad.f1_mat[k,j,i] = f1.test
+      MIMIC.trad.P_mat[k,j,i] = precision.test
+      MIMIC.trad.R_mat[k,j,i] = recall.test
+      #EICU
+      lines <- readLines(paste(model, gap, fold, "mainlog.log", sep = "/"))
+      lines = lines[length(lines)]
+      EICU.res = as.numeric(unlist(regmatches(lines,gregexpr("[[:digit:]]+\\.*[[:digit:]]*",lines))))
+      EICU.trad.auc_mat[k,j,i] = EICU.res[1]
+      EICU.trad.f1_mat[k,j,i] = EICU.res[3]
+      EICU.trad.P_mat[k,j,i] = EICU.res[4]
+      EICU.trad.R_mat[k,j,i] = EICU.res[5]
+    }
+  }
+}
+
+MIMIC.auc_mat.melt = melt(t(MIMIC.auc_mat))
+MIMIC.all.melt = cbind(rep("LSTM", dim(MIMIC.auc_mat.melt)[1]), MIMIC.auc_mat.melt)
+colnames(MIMIC.all.melt)[1] = "Model"
+for (i in 1:length(result_folders)){
+  melted = MIMIC.trad.auc_mat[,,i]
+  colnames(melted) = rown
+  rownames(melted) = coln
+  melted = melt(melted)
+  melted = cbind(rep(result_folders[i], dim(melted)[1]), melted)
+  colnames(melted)[1] = "Model"
+  MIMIC.all.melt = rbind(MIMIC.all.melt, melted)
+}
+p3 <- ggplot(MIMIC.all.melt, aes(x=Var2, y=value, fill = Model)) + 
+  geom_boxplot(width=0.2, color="black", size = 0.7, outlier.shape = 21)
+p3
+
+
+EICU.auc_mat.melt = melt(t(EICU.auc_mat))
+EICU.all.melt = cbind(rep("LSTM", dim(EICU.auc_mat.melt)[1]), EICU.auc_mat.melt)
+colnames(EICU.all.melt)[1] = "Model"
+for (i in 1:length(result_folders)){
+  melted = EICU.trad.auc_mat[,,i]
+  colnames(melted) = rown
+  rownames(melted) = coln
+  melted = melt(melted)
+  melted = cbind(rep(result_folders[i], dim(melted)[1]), melted)
+  colnames(melted)[1] = "Model"
+  EICU.all.melt = rbind(EICU.all.melt, melted)
+}
+
+p4 <- ggplot(EICU.all.melt, aes(x=Var2, y=value, fill = Model)) + 
+  geom_boxplot(width=0.2, color="black", size = 0.7, outlier.shape = 21) +
+  theme_bw() +
+  # scale_y_continuous(limits = c(0.52, 1)) +
+  labs(title = "Performances of Integrating Multi-omics Data",
+       x = "", y = "AUC", fill = "Datasets") +
+  theme(axis.text.x = element_text(size=12),
+        plot.title = element_text(size=14, face="bold", hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5),
+        legend.position="none"
+  ) +
+  scale_fill_brewer(palette="RdYlBu") + 
+  annotate("point", color = "blue", x = 1:dim(mat)[2], y = apply(mat, 2, median)) + 
+  annotate("text", color = "black", x = 1:dim(mat)[2], y = 0.65,
+           label = sprintf("Mean: %.4f", colMeans(mat))) +
+  annotate("text", color = "blue", x = 1:dim(mat)[2], y = apply(mat, 2, median)-0.02,
+           label = sprintf("Median: %.4f", apply(mat, 2, median)))
+p4
