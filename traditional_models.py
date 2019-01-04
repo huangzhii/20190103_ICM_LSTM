@@ -56,16 +56,17 @@ if __name__=='__main__':
     data_EICU = pd.read_csv("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/data/EICU_final_data_for_LSTM_20190102.csv")
 
     mtds = ["logit_l1", "logit_l2", "NN_l2", "SVC", "AdaBoost", "GBC", "RFC"]
+    mtds = ["AdaBoost", "GBC", "RFC"]
     
     for mtd in mtds:
-        if mtd == "logit_l1":
+        if mtd == "logit_l1": # around 8 mins for all folds
             regr = LogisticRegression(penalty='l1', C=1) # 3.55
-        if mtd == "logit_l2":
+        if mtd == "logit_l2": # around 4 mins for all folds
             regr = LogisticRegression(penalty='l2', C=1) # 4.2
-        if mtd == "NN_l2":
+        if mtd == "NN_l2": # around 2 mins for all folds
             regr = MLPClassifier(solver='adam', alpha=1e-5, max_iter=2000, # alpha is L2 reg
                                  hidden_layer_sizes=(64), random_state=1)
-        if mtd == "SVC": #slow
+        if mtd == "SVC": # Too slow! cost at least 3 hours for one fold!
             regr = SVC(kernel='linear', C=1, probability = True)
         if mtd == "AdaBoost":
             regr = AdaBoostClassifier(n_estimators=100)

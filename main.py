@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument('--verbose', default=0, type=int)
     parser.add_argument('--run_fold', default=1, type=int)
     parser.add_argument('--gap', default=6, type=int)
-    parser.add_argument('--results_dir', default='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190103', help="results dir")
+    parser.add_argument('--results_dir', default='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190104_32_3', help="results dir")
     return parser.parse_args()
 
 if __name__=='__main__':
@@ -57,6 +57,22 @@ if __name__=='__main__':
     datasets_5folds = pickle.load( open( '/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/data/' + fname, "rb" ) )
     data_EICU = pd.read_csv("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/data/EICU_final_data_for_LSTM_20190102.csv")
 
+    # =============================================================================
+    #     Model
+    # =============================================================================
+    model = LSTM.LSTM(input_size = 43, hidden_size = 32, num_layers = 3, batch_size = batch_size, num_classes = 2, device = device)
+    #model.hidden = model.init_hidden()
+    model.to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay) # define l2 penalty below, not at here.
+    
+    text_file = open(args.results_dir + "/parameter_setting.txt", "w")
+    text_file.write(str(model) + "\n")
+    text_file.write(str(optimizer) + "\n")
+    text_file.write("Gap: %d\n" % args.gap)
+    text_file.write("Batch size: %d\n" % batch_size)
+    text_file.write("Number of Epochs: %d\n" % epochs)
+    text_file.close()
+    
     for i in range(len(datasets_5folds)):
         print("%d fold CV -- %d/%d" % (len(datasets_5folds), i+1, len(datasets_5folds)))
 #        if run_fold != i+1:
@@ -88,21 +104,6 @@ if __name__=='__main__':
         y_test = datasets['test']['y']
         dataloader = DataLoader(torch.FloatTensor(X_train), batch_size=batch_size, pin_memory=True, shuffle=False)
         lblloader = DataLoader(torch.LongTensor(y_train), batch_size=batch_size, pin_memory=True, shuffle=False)
-    # =============================================================================
-    #     Model
-    # =============================================================================
-        model = LSTM.LSTM(input_size = 43, hidden_size = 32, num_layers = 1, batch_size = batch_size, num_classes = 2, device = device)
-        #model.hidden = model.init_hidden()
-        model.to(device)
-        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay) # define l2 penalty below, not at here.
-        
-        text_file = open(results_dir_dataset + "/parameter_setting.txt", "w")
-        text_file.write(str(model) + "\n")
-        text_file.write(str(optimizer) + "\n")
-        text_file.write("Gap: %d\n" % args.gap)
-        text_file.write("Batch size: %d\n" % batch_size)
-        text_file.write("Number of Epochs: %d\n" % epochs)
-        text_file.close()
         
         
         auc_train_list, auc_test_list, f1_train_list, f1_test_list, \
