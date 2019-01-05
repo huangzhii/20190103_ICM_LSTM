@@ -60,7 +60,7 @@ if __name__=='__main__':
     # =============================================================================
     #     Model
     # =============================================================================
-    model = LSTM.LSTM(input_size = 43, hidden_size = 32, num_layers = 3, batch_size = batch_size, num_classes = 2, device = device)
+    model = LSTM.LSTM(input_size = 43, hidden_size = 16, num_layers = 3, batch_size = batch_size, num_classes = 2, device = device)
     #model.hidden = model.init_hidden()
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay) # define l2 penalty below, not at here.
@@ -149,6 +149,8 @@ if __name__=='__main__':
         
         
         
+        with open(results_dir_dataset + '/model.pickle', 'wb') as handle:
+            pickle.dump(model.state_dict(), handle, protocol=pickle.HIGHEST_PROTOCOL)
         with open(results_dir_dataset + '/model.pickle', 'wb') as handle:
             pickle.dump(model.state_dict(), handle, protocol=pickle.HIGHEST_PROTOCOL)
         with open(results_dir_dataset + '/outputs_test_proba.pickle', 'wb') as handle:

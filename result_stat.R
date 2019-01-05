@@ -5,7 +5,12 @@ library(cowplot)
 library(reticulate)
 source("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/utils.R")
 
-setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results")
+
+########################################
+#     LSTM architecture comparison
+########################################
+
+setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190104")
 result_folders = dir(".")
 result_folders = grep("LSTM", result_folders, value=TRUE)
 
@@ -91,7 +96,7 @@ p14 <- modelcompareplot(EICU.lstm.f1_mat, "LSTM Model with Different Architectur
 # modelcompareplot(EICU.lstm.R_mat)
 
 Fig1 <- plot_grid(p11, p12, p13, p14, nrow=2, labels = c("A", "B", "C", "D"), align = "h")
-ggsave("Figs and Tables/Fig1_LSTM_Model_Architecture_Compare.png", plot = Fig1,
+ggsave("../Figs and Tables/Fig1_LSTM_Model_Architecture_Compare.png", plot = Fig1,
        width = 15, height = 10, units = "in", dpi=1200)
 
 
@@ -108,13 +113,13 @@ for (i in 1:dim(pw.pttest.t)[2]){
               paste(colnames(pw.pttest.pval)[i], "(p)"))
 }
 colnames(table) = table.colnames
-write.table(table, "Figs and Tables/LSTM_architecture_comparison_ppttest (MIMIC F1 Test Set).csv", sep = ",", col.names = NA)
+write.table(table, "../Figs and Tables/LSTM_architecture_comparison_ppttest (MIMIC F1 Test Set).csv", sep = ",", col.names = NA)
 
 
 ################ Choose the best LSTM model
 
 
-setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_16_3")
+setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190104/LSTM_16_3")
 result_folders = dir(".")
 result_folders = grep("Gap", result_folders, value=TRUE)
 
@@ -193,7 +198,7 @@ p24 <- LSTM_performance_plot(t(EICU.f1_mat), "LSTM F1 Score with Different Gap H
 
 Fig2 <- plot_grid(p21, p22, p23, p24, nrow=2, labels = c("A", "B", "C", "D"), align = "h")
 Fig2
-ggsave("../Figs and Tables/Fig2.png", plot = Fig2, width = 15, height = 10, units = "in", dpi=1200)
+ggsave("../../Figs and Tables/Fig2.png", plot = Fig2, width = 15, height = 10, units = "in", dpi=1200)
 
 
 ###############################
@@ -324,4 +329,56 @@ for (i in 1:dim(pw.pttest.t)[2]){
 colnames(table) = table.colnames
 write.table(table, "../Figs and Tables/Model_comparison_ppttest (MIMIC F1 Test Set).csv", sep = ",", col.names = NA)
 
+
+
+
+
+
+
+##################################################
+#    LSTM_16_3 feature ranking
+##################################################
+setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results")
+gap = 6
+feature_ranking_path = paste0("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190104/LSTM_16_3/",
+                          "Gap_", gap, "/feature_ranking")
+fr.auc = read.csv(paste(feature_ranking_path, "AUC.csv", sep = "/"), row.names = 1)
+fr.f1 = read.csv(paste(feature_ranking_path, "F1.csv", sep = "/"), row.names = 1)
+fr.precision = read.csv(paste(feature_ranking_path, "Precision.csv", sep = "/"), row.names = 1)
+fr.recall = read.csv(paste(feature_ranking_path, "Recall.csv", sep = "/"), row.names = 1)
+
+feature_ranking_boxplot <- function(mat, sortby, my.title = "Title", my.ylabel = "AUC"){
+  if (sortby == "median"){
+    sortindex = sort.int(apply(mat, 1, median), index.return = T, decreasing = F)$ix
+  }
+  if (sortby == "mean"){
+    sortindex = sort.int(apply(mat, 1, mean), index.return = T, decreasing = F)$ix
+  }
+  mat = mat[sortindex,]
+  mat.melt = melt(as.matrix(mat))
+  p <- ggplot(mat.melt, aes(x=Var1, y=value, fill = Var1)) + 
+    geom_boxplot(width=0.6, color="black", size = 0.5, outlier.shape = NA) +
+    theme_gray() +
+    labs(title = my.title, x = "", y = my.ylabel) +
+    theme(axis.text.x = element_text(size=12, angle = 45, hjust = 1),
+          plot.title = element_text(size=14, face="bold", hjust = 0.5),
+          plot.subtitle = element_text(hjust = 0.5),
+          plot.margin = unit(c(0.5,0.5,1,1), "cm"),
+          legend.position="none"
+    ) +
+    guides(fill=guide_legend(nrow=2,byrow=TRUE))
+  return(p)
+}
+
+
+p41 <- feature_ranking_boxplot(fr.auc[,1:5], "median", "Feature Importance (MIMIC Test Set) evaluated by AUC", "AUC")
+p42 <- feature_ranking_boxplot(fr.auc[,6:10], "median", "Feature Importance (EICU Dataet) evaluated by AUC", "AUC")
+p43 <- feature_ranking_boxplot(fr.f1[,1:5], "median", "Feature Importance (MIMIC Test Set) evaluated by F1 Score", "F1 Score")
+p44 <- feature_ranking_boxplot(fr.f1[,6:10], "median", "Feature Importance (EICU Dataet) evaluated by F1 Score", "F1 Score")
+
+
+Fig4 <- plot_grid(p41, p42, p43, p44, nrow=2, labels = c("A", "B", "C", "D"), align = "h")
+Fig4
+ggsave("Figs and Tables/Fig4.png", plot = Fig4, width = 15, height = 10, units = "in", dpi=1200)
+ggsave("Figs and Tables/Fig4_MIMIC_F1.png", plot = p43, width = 15, height = 10, units = "in", dpi=1200)
 

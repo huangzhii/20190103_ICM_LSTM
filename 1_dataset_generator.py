@@ -16,16 +16,9 @@ import numpy as np
 import math, random
 import pandas as pd
 import utils
-import LSTM
 from sklearn.metrics import auc, roc_curve, f1_score
-from torch.utils.data import DataLoader
-from tqdm import tqdm
 import gc
-import copy
 from sklearn.model_selection import KFold
-from sklearn import svm
-from sklearn.neural_network import MLPClassifier
-from sklearn.linear_model import LogisticRegression
 import pickle
 
 
@@ -40,7 +33,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 gc.collect()
 data = pd.read_csv("data/MIMIC_final_data_for_LSTM_20190102.csv")
-gap = 6
+gap = 1
 X, y, column_names, icustay_id = utils.preprocessing(data, series = 6, gap = gap)
 uniqueID = np.unique(icustay_id)
 
@@ -78,6 +71,7 @@ for train_index, test_index in kf.split(uniqueID):
     datasets['train'] = {}
     datasets['val'] = {}
     datasets['test'] = {}
+    datasets['column_names'] = column_names
     
     datasets['train']['X'] = X[index_train, :, :].astype(np.double)
     datasets['train']['y'] = y[index_train].astype(np.int32)
@@ -94,6 +88,12 @@ for train_index, test_index in kf.split(uniqueID):
     datasets_folds[str(i)] = datasets
 processed_dir = '/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/data'
 
+#### git ignore all pickle data, since they are too large!
+with open(processed_dir + '/Data_5folds_6_%d_1_20190103.pickle' % gap, 'wb') as handle:
+    pickle.dump(datasets_folds, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    
+    
+    
 
 #### git ignore all pickle data, since they are too large!
 with open(processed_dir + '/Data_5folds_6_%d_1_20190103.pickle' % gap, 'wb') as handle:
