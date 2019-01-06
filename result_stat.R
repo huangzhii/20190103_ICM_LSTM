@@ -10,7 +10,7 @@ source("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/utils.R")
 #     LSTM architecture comparison
 ########################################
 
-setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190104")
+setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/20180105 data: 42 features normalized/LSTM_20190105_normalized")
 result_folders = dir(".")
 result_folders = grep("LSTM", result_folders, value=TRUE)
 
@@ -123,6 +123,7 @@ write.table(table, "../Figs and Tables/LSTM_architecture_comparison_ppttest (MIM
 
 
 setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190104/LSTM_8_1_epoch=500_dr=0.2_lr=0.005_wd=1e-05/")
+setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/20180105 data: 42 features normalized/LSTM_20190105_normalized/LSTM_8_1_ep=100_dr=0.2_lr=0.005_l2=0_l1=0.001")
 result_folders = dir(".")
 result_folders = grep("Gap", result_folders, value=TRUE)
 
@@ -149,7 +150,8 @@ for (folders in result_folders){
   message(folders)
   i = i+1
   j = 0
-  for (fold in dir(folders)){
+  folds = grep("run_", dir(folders), value=TRUE)
+  for (fold in folds){
     j = j+1
     # message(fold)
     tbl = read.csv(paste(folders, fold, 'MIMIC_AFPR_table.csv', sep = '/'), row.names = 1)
@@ -207,7 +209,7 @@ ggsave("../../Figs and Tables/Fig2.png", plot = Fig2, width = 15, height = 10, u
 ###############################
 # Traditional Models
 ###############################
-setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/Traditional_20190104/")
+setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/20180105 data: 42 features normalized/Traditional_20190105_normalized")
 result_folders = dir(".")
 result_folders = result_folders[!result_folders %in% c("AdaBoost", "GBC")] # exclude ensemble methods
 # result_folders = grep("_", result_folders, value=TRUE)
@@ -284,7 +286,7 @@ modelcompareplot_with_trad <- function(lstm.mat.in, traditional.tensor.in, model
     all.melt = rbind(all.melt, melted)
   }
   p <- ggplot(all.melt, aes(x=Var2, y=value, fill = Model)) + 
-    geom_boxplot(width=0.6, color="black", size = 0.5, outlier.shape = NA) +
+    geom_boxplot(width=0.6, color="black", size = 0.5, outlier.shape = 21) +
     theme_gray() +
     labs(title = my.title, x = "", y = my.ylabel) +
     theme(axis.text.x = element_text(size=12),
@@ -301,7 +303,7 @@ modelcompareplot_with_trad <- function(lstm.mat.in, traditional.tensor.in, model
 
 print(result_folders)
 model.names = c("LSTM", "Logistic Regression (L1)", "Logistic Regression (L2)",
-                "Neural Network", "Random Forest Classifier")
+                "Neural Network", "Neural Network (L2)", "Random Forest Classifier")
 p31 <- modelcompareplot_with_trad(t(MIMIC.auc_mat), MIMIC.trad.auc_mat, model.names,
                                   "Model Performance (AUC) with Different Gap Hours (MIMIC Test Set)", "AUC")
 p32 <- modelcompareplot_with_trad(t(MIMIC.f1_mat), MIMIC.trad.f1_mat, model.names,
@@ -341,10 +343,10 @@ write.table(table, "../Figs and Tables/Model_comparison_ppttest (MIMIC F1 Test S
 ##################################################
 #    LSTM_16_3 feature ranking
 ##################################################
-setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results")
-gap = 6
-feature_ranking_path = paste0("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190104/LSTM_32_1/",
-                          "Gap_", gap, "/feature_ranking")
+setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/20180105 data: 42 features normalized")
+gap = 5
+feature_ranking_path = paste0("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/20180105 data: 42 features normalized/LSTM_20190105_normalized/LSTM_8_1_ep=100_dr=0.2_lr=0.005_l2=0_l1=0.001",
+                          "/Gap_", gap, "/feature_ranking")
 fr.auc = read.csv(paste(feature_ranking_path, "AUC.csv", sep = "/"), row.names = 1)
 fr.f1 = read.csv(paste(feature_ranking_path, "F1.csv", sep = "/"), row.names = 1)
 fr.precision = read.csv(paste(feature_ranking_path, "Precision.csv", sep = "/"), row.names = 1)
@@ -382,6 +384,7 @@ p44 <- feature_ranking_boxplot(fr.f1[,6:10], "median", "Feature Importance (EICU
 
 Fig4 <- plot_grid(p41, p42, p43, p44, nrow=2, labels = c("A", "B", "C", "D"), align = "h")
 Fig4
+p43
 ggsave("Figs and Tables/Fig4.png", plot = Fig4, width = 15, height = 10, units = "in", dpi=600)
 ggsave("Figs and Tables/Fig4_MIMIC_F1.png", plot = p43, width = 15, height = 10, units = "in", dpi=600)
 

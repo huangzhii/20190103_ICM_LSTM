@@ -1,0 +1,7 @@
+{
+    "log_learning_rate": [-4, -2],
+    "hidden_size": [8, 12.99],
+    "nof_hidden_layer": [1, 2.99],
+    "l1_reg": [0, 0.005],
+    "dropout_rate": [0, 0.2]
+}

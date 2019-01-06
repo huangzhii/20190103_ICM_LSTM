@@ -1,0 +1,7 @@
+,0
+auc_train,1.0
+auc_test,0.9690439011329302
+f1_train,1.0
+f1_test,0.85291229034279
+precision_test,0.841863519010029
+recall_test,0.8891929209400924
