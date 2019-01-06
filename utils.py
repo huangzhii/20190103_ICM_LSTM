@@ -10,7 +10,7 @@ from sklearn.preprocessing import scale
 
 def preprocessing(data, series = 6, gap = 6):
     Y = data[['IS_VENT', 'IS_VENT_P_F_ratio_target']]
-    X = data.drop(['FIO2','PO2','PCO2','P_F_ratio','CURR_TIME','IS_VENT','IS_VENT_P_F_ratio_target'], 1)
+    X = data.drop(['FIO2','PO2','PCO2','P_F_ratio','CURR_TIME','IS_VENT','IS_VENT_P_F_ratio_target','CA_ION'], 1)
     if 'SUBJECT_ID' in X.columns or 'HADM_ID' in X.columns or 'PT' in X.columns:
         X = X.drop(['SUBJECT_ID','HADM_ID','PT'], 1) # PT is not showing up in EICU cohort
         

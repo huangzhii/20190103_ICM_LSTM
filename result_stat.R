@@ -34,7 +34,8 @@ for (model in result_folders){
   for (gap in gaps){
     j = j+1
     k = 0
-    for (fold in dir(paste(model, gap, sep = "/"))){
+    folds = grep("run_", dir(paste(model, gap, sep = "/")), value=TRUE)
+    for (fold in folds){
       k = k+1
       # message(fold)
       tbl = read.csv(paste(model, gap, fold, 'MIMIC_AFPR_table.csv', sep = '/'), row.names = 1)
@@ -83,7 +84,8 @@ modelcompareplot <- function(tensor.in, my.title, my.ylabel){
           plot.title = element_text(size=14, face="bold", hjust = 0.5),
           plot.subtitle = element_text(hjust = 0.5),
           legend.position="bottom"
-    )
+    ) +
+    guides(fill=guide_legend(nrow=12,byrow=TRUE))
   return(p)
 }
 p11 <- modelcompareplot(MIMIC.lstm.auc_mat, "LSTM Model with Different Architecture (MIMIC Test Set)", "AUC")
@@ -96,8 +98,9 @@ p14 <- modelcompareplot(EICU.lstm.f1_mat, "LSTM Model with Different Architectur
 # modelcompareplot(EICU.lstm.R_mat)
 
 Fig1 <- plot_grid(p11, p12, p13, p14, nrow=2, labels = c("A", "B", "C", "D"), align = "h")
+Fig1
 ggsave("../Figs and Tables/Fig1_LSTM_Model_Architecture_Compare.png", plot = Fig1,
-       width = 15, height = 10, units = "in", dpi=1200)
+       width = 15, height = 10, units = "in", dpi=600)
 
 
 merge.f1.mat = apply(MIMIC.lstm.f1_mat, 3, function(x) unlist(x))
@@ -119,7 +122,7 @@ write.table(table, "../Figs and Tables/LSTM_architecture_comparison_ppttest (MIM
 ################ Choose the best LSTM model
 
 
-setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190104/LSTM_16_3")
+setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190104/LSTM_8_1_epoch=500_dr=0.2_lr=0.005_wd=1e-05/")
 result_folders = dir(".")
 result_folders = grep("Gap", result_folders, value=TRUE)
 
@@ -198,15 +201,15 @@ p24 <- LSTM_performance_plot(t(EICU.f1_mat), "LSTM F1 Score with Different Gap H
 
 Fig2 <- plot_grid(p21, p22, p23, p24, nrow=2, labels = c("A", "B", "C", "D"), align = "h")
 Fig2
-ggsave("../../Figs and Tables/Fig2.png", plot = Fig2, width = 15, height = 10, units = "in", dpi=1200)
+ggsave("../../Figs and Tables/Fig2.png", plot = Fig2, width = 15, height = 10, units = "in", dpi=600)
 
 
 ###############################
 # Traditional Models
 ###############################
-setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/Traditional_20190103/")
+setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/Traditional_20190104/")
 result_folders = dir(".")
-result_folders = result_folders[!result_folders %in% c("AdaBoost", "GBC", "logit_l2 (all, not use)")] # exclude ensemble methods
+result_folders = result_folders[!result_folders %in% c("AdaBoost", "GBC")] # exclude ensemble methods
 # result_folders = grep("_", result_folders, value=TRUE)
 
 
@@ -310,7 +313,7 @@ p34 <- modelcompareplot_with_trad(t(EICU.f1_mat), EICU.trad.f1_mat, model.names,
 
 Fig3 <- plot_grid(p31, p32, p33, p34, nrow=2, labels = c("A", "B", "C", "D"), align = "h")
 Fig3
-ggsave("../Figs and Tables/Fig3.png", plot = Fig3, width = 15, height = 10, units = "in", dpi=1200)
+ggsave("../Figs and Tables/Fig3.png", plot = Fig3, width = 15, height = 10, units = "in", dpi=600)
 
 # pairwise paired t-test
 merge.f1.mat = apply(MIMIC.trad.f1_mat, 3, function(x) unlist(x))
@@ -340,7 +343,7 @@ write.table(table, "../Figs and Tables/Model_comparison_ppttest (MIMIC F1 Test S
 ##################################################
 setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results")
 gap = 6
-feature_ranking_path = paste0("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190104/LSTM_16_3/",
+feature_ranking_path = paste0("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190104/LSTM_32_1/",
                           "Gap_", gap, "/feature_ranking")
 fr.auc = read.csv(paste(feature_ranking_path, "AUC.csv", sep = "/"), row.names = 1)
 fr.f1 = read.csv(paste(feature_ranking_path, "F1.csv", sep = "/"), row.names = 1)
@@ -379,6 +382,6 @@ p44 <- feature_ranking_boxplot(fr.f1[,6:10], "median", "Feature Importance (EICU
 
 Fig4 <- plot_grid(p41, p42, p43, p44, nrow=2, labels = c("A", "B", "C", "D"), align = "h")
 Fig4
-ggsave("Figs and Tables/Fig4.png", plot = Fig4, width = 15, height = 10, units = "in", dpi=1200)
-ggsave("Figs and Tables/Fig4_MIMIC_F1.png", plot = p43, width = 15, height = 10, units = "in", dpi=1200)
+ggsave("Figs and Tables/Fig4.png", plot = Fig4, width = 15, height = 10, units = "in", dpi=600)
+ggsave("Figs and Tables/Fig4_MIMIC_F1.png", plot = p43, width = 15, height = 10, units = "in", dpi=600)
 

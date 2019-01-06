@@ -36,11 +36,8 @@ np.random.seed(666)
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--num_epochs', type=int, default=200, help="Number of epochs to train for. Default: 300")
-    parser.add_argument('--verbose', default=0, type=int)
-    parser.add_argument('--run_fold', default=1, type=int)
     parser.add_argument('--gap', default=6, type=int)
-    parser.add_argument('--results_dir', default='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/Traditional_20190103', help="results dir")
+    parser.add_argument('--results_dir', default='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/Traditional_20190105', help="results dir")
     return parser.parse_args()
 
 if __name__=='__main__':
@@ -50,12 +47,12 @@ if __name__=='__main__':
     args = parse_args()
     plt.ioff()
     
-    fname = 'Data_5folds_6_%d_1_20190103.pickle' % args.gap
+    fname = 'Data_5folds_6_%d_1_20190105_no_CA.pickle' % args.gap
     print("Running with dataset Gap = %d" % args.gap)
     datasets_5folds = pickle.load( open( '/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/data/' + fname, "rb" ) )
     data_EICU = pd.read_csv("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/data/EICU_final_data_for_LSTM_20190102.csv")
 
-    mtds = ["logit_l1", "logit_l2", "NN_l2", "SVC", "AdaBoost", "GBC", "RFC"]
+    mtds = ["logit_l1", "logit_l2", "NN_l2", "AdaBoost", "GBC", "RFC"]
     
     for mtd in mtds:
         if mtd == "logit_l1": # around 8 mins for all folds

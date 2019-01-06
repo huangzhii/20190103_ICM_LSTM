@@ -17,12 +17,12 @@ import copy
 
 # Define the model
 class LSTM(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, batch_size, num_classes, device):
+    def __init__(self, input_size, hidden_size, num_layers, batch_size, num_classes, dropout, device):
         super(LSTM, self).__init__()
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         self.batch_size = batch_size
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, dropout=dropout, batch_first=True)
         self.fc = nn.Linear(hidden_size, num_classes)
         self.device = device # GPU or CPU?
 #        self.hidden = self.init_hidden()

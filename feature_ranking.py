@@ -25,11 +25,10 @@ import matplotlib.pyplot as plt
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--num_epochs', type=int, default=200, help="Number of epochs to train for. Default: 300")
-    parser.add_argument('--hidden_size', default=16, type=int)
-    parser.add_argument('--num_layers', default=3, type=int)
-    parser.add_argument('--run_fold', default=1, type=int)
+    parser.add_argument('--hidden_size', default=32, type=int)
+    parser.add_argument('--num_layers', default=1, type=int)
     parser.add_argument('--gap', default=6, type=int)
-    parser.add_argument('--results_dir', default='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190104/LSTM_16_3', help="results dir")
+    parser.add_argument('--results_dir', default='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190104', help="results dir")
     return parser.parse_args()
 
 if __name__=='__main__':
@@ -49,6 +48,7 @@ if __name__=='__main__':
     batch_size = 2**20
     learning_rate = 1e-2
     weight_decay = 0
+    args.results_dir = args.results_dir + "/LSTM_" + str(args.hidden_size) + "_" + str(args.num_layers)
     
     # Device configuration
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

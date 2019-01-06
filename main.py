@@ -24,11 +24,15 @@ import matplotlib.pyplot as plt
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--num_epochs', type=int, default=200, help="Number of epochs to train for. Default: 300")
-    parser.add_argument('--verbose', default=0, type=int)
-    parser.add_argument('--run_fold', default=1, type=int)
+    parser.add_argument('--num_epochs', type=int, default=400, help="Number of epochs to train for. Default: 300")
+    parser.add_argument('--hidden_size', default=8, type=int)
+    parser.add_argument('--num_layers', default=1, type=int)
     parser.add_argument('--gap', default=6, type=int)
-    parser.add_argument('--results_dir', default='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190104_32_3', help="results dir")
+    parser.add_argument('--dropout', default=0.2, type=float)
+    parser.add_argument('--lr', default=5e-3, type=float)
+    parser.add_argument('--l1', default=1e-4, type=float)
+    parser.add_argument('--l2', default=0, type=float)
+    parser.add_argument('--results_dir', default='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190105', help="results dir")
     return parser.parse_args()
 
 if __name__=='__main__':
@@ -45,33 +49,25 @@ if __name__=='__main__':
     plt.ioff()
 #    run_fold = args.run_fold
     
+    learning_rate = args.lr
+    weight_decay = args.l2
+    l1_reg = args.l1
+    dropout = args.dropout
     batch_size = 2**20
-    learning_rate = 1e-2
-    weight_decay = 0
     
+    args.results_dir = args.results_dir + "/LSTM_" + str(args.hidden_size) + "_" + \
+        str(args.num_layers) + "_ep=" + str(epochs) + "_dr=" + str(dropout) + \
+        "_lr=" + str(learning_rate) + "_l2=" + str(weight_decay) + \
+        "_l1=" + str(l1_reg)
+
     # Device configuration
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     #device = torch.device('cpu')
-    fname = 'Data_5folds_6_%d_1_20190103.pickle' % args.gap
+    fname = 'Data_5folds_6_%d_1_20190105_no_CA.pickle' % args.gap
     print("Running with dataset Gap = %d" % args.gap)
     datasets_5folds = pickle.load( open( '/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/data/' + fname, "rb" ) )
     data_EICU = pd.read_csv("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/data/EICU_final_data_for_LSTM_20190102.csv")
 
-    # =============================================================================
-    #     Model
-    # =============================================================================
-    model = LSTM.LSTM(input_size = 43, hidden_size = 16, num_layers = 3, batch_size = batch_size, num_classes = 2, device = device)
-    #model.hidden = model.init_hidden()
-    model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay) # define l2 penalty below, not at here.
-    
-    text_file = open(args.results_dir + "/parameter_setting.txt", "w")
-    text_file.write(str(model) + "\n")
-    text_file.write(str(optimizer) + "\n")
-    text_file.write("Gap: %d\n" % args.gap)
-    text_file.write("Batch size: %d\n" % batch_size)
-    text_file.write("Number of Epochs: %d\n" % epochs)
-    text_file.close()
     
     for i in range(len(datasets_5folds)):
         print("%d fold CV -- %d/%d" % (len(datasets_5folds), i+1, len(datasets_5folds)))
@@ -84,8 +80,27 @@ if __name__=='__main__':
                                 '/run_' + TIMESTRING + '_fold_' + str(i+1)
         if not os.path.exists(results_dir_dataset):
             os.makedirs(results_dir_dataset)
-#        if not os.path.exists(results_dir_dataset + '/find_hyperparameters'):
-#            os.makedirs(results_dir_dataset + '/find_hyperparameters')
+            
+        # =============================================================================
+        #     Model
+        # =============================================================================
+        model = LSTM.LSTM(input_size = datasets_5folds['1']['test']['X'].shape[2], hidden_size = args.hidden_size, \
+                          num_layers = args.num_layers, batch_size = batch_size, num_classes = 2, \
+                          dropout = dropout, device = device)
+        #model.hidden = model.init_hidden()
+        model.to(device)
+        optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay) # define l2 penalty below, not at here.
+        
+        text_file = open(args.results_dir + "/parameter_setting.txt", "w")
+        text_file.write(str(model) + "\n")
+        text_file.write(str(optimizer) + "\n")
+        text_file.write("Gap: %d\n" % args.gap)
+        text_file.write("Batch size: %d\n" % batch_size)
+        text_file.write("Number of Epochs: %d\n" % epochs)
+        text_file.write("Dropout: %.4f\n" % dropout)
+        text_file.write("L1 reg: %.4f\n" % l1_reg)
+        text_file.write("L2 reg: %.4f\n" % weight_decay)
+        text_file.close()
                 
         # create logger
         logger = logging.getLogger(TIMESTRING)
@@ -119,9 +134,16 @@ if __name__=='__main__':
                 fpr, tpr, thresholds = roc_curve(lbl.cpu().data.numpy(), outputs_proba)
                 auc_train = auc(fpr, tpr)
                 auc_train_list.append(auc_train)
-                f1_train = f1_score(outputs_bin, lbl, average = 'macro')
+                f1_train = f1_score(outputs_bin, lbl.cpu().data.numpy(), average = 'macro')
                 f1_train_list.append(f1_train)
                 loss = criterion(outputs, lbl)
+#                L1 penalization
+                l1_crit = nn.L1Loss(size_average=False)
+                l1_loss = 0
+                for param in model.parameters():
+                    target = torch.FloatTensor(np.zeros(param.shape)).to(device)
+                    l1_loss += l1_crit(param, target)
+                loss += l1_reg * l1_loss
                 
                 loss.backward()
                 optimizer.step()
