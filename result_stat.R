@@ -140,6 +140,8 @@ EICU.P_mat = data.frame(matrix(NA, ncol = length(coln), nrow = length(rown)))
 EICU.R_mat = data.frame(matrix(NA, ncol = length(coln), nrow = length(rown)))
 colnames(MIMIC.auc_mat) = coln; rownames(MIMIC.auc_mat) = rown
 colnames(MIMIC.f1_mat) = coln; rownames(MIMIC.f1_mat) = rown
+colnames(MIMIC.P_mat) = coln; rownames(MIMIC.P_mat) = rown
+colnames(MIMIC.R_mat) = coln; rownames(MIMIC.R_mat) = rown
 colnames(EICU.auc_mat) = coln; rownames(EICU.auc_mat) = rown
 colnames(EICU.f1_mat) = coln; rownames(EICU.f1_mat) = rown
 colnames(EICU.P_mat) = coln; rownames(EICU.P_mat) = rown
@@ -211,7 +213,7 @@ ggsave("../../Figs and Tables/Fig2.png", plot = Fig2, width = 15, height = 10, u
 ###############################
 setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/20180105 data: 42 features normalized/Traditional_20190105_normalized")
 result_folders = dir(".")
-result_folders = result_folders[!result_folders %in% c("AdaBoost", "GBC")] # exclude ensemble methods
+result_folders = result_folders[!result_folders %in% c("AdaBoost", "GBC", "RFC")] # exclude ensemble methods
 # result_folders = grep("_", result_folders, value=TRUE)
 
 
@@ -303,7 +305,7 @@ modelcompareplot_with_trad <- function(lstm.mat.in, traditional.tensor.in, model
 
 print(result_folders)
 model.names = c("LSTM", "Logistic Regression (L1)", "Logistic Regression (L2)",
-                "Neural Network", "Neural Network (L2)", "Random Forest Classifier")
+                "Neural Network", "Neural Network (L2)")
 p31 <- modelcompareplot_with_trad(t(MIMIC.auc_mat), MIMIC.trad.auc_mat, model.names,
                                   "Model Performance (AUC) with Different Gap Hours (MIMIC Test Set)", "AUC")
 p32 <- modelcompareplot_with_trad(t(MIMIC.f1_mat), MIMIC.trad.f1_mat, model.names,
@@ -312,6 +314,10 @@ p33 <- modelcompareplot_with_trad(t(EICU.auc_mat), EICU.trad.auc_mat, model.name
                                   "Model Performance (AUC) with Different Gap Hours (EICU Test Set)", "AUC")
 p34 <- modelcompareplot_with_trad(t(EICU.f1_mat), EICU.trad.f1_mat, model.names,
                                   "Model Performance (F1) Score with Different Gap Hours (EICU Test Set)", "F1 Score")
+p35 <- modelcompareplot_with_trad(t(MIMIC.P_mat), MIMIC.trad.P_mat, model.names,
+                                  "Model Performance (Precision) with Different Gap Hours (MIMIC Test Set)", "Precision")
+p36 <- modelcompareplot_with_trad(t(MIMIC.R_mat), MIMIC.trad.R_mat, model.names,
+                                  "Model Performance (Recall) with Different Gap Hours (MIMIC Test Set)", "Recall")
 
 Fig3 <- plot_grid(p31, p32, p33, p34, nrow=2, labels = c("A", "B", "C", "D"), align = "h")
 Fig3
@@ -341,16 +347,28 @@ write.table(table, "../Figs and Tables/Model_comparison_ppttest (MIMIC F1 Test S
 
 
 ##################################################
-#    LSTM_16_3 feature ranking
+#    LSTM feature ranking
 ##################################################
+library(randomcoloR)
+options(stringsAsFactors = F)
+
 setwd("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/20180105 data: 42 features normalized")
-gap = 5
+gap = 6
+feature.categories = read.csv("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/data/feature_categories.csv", row.names = 1)
+palette <- distinctColorPalette(length(unique(feature.categories$CLASS1)))
+color_names = unique(feature.categories$CLASS1_NAME)
+color_names = color_names[sort.int(palette, index.return = T)$ix]
+
 feature_ranking_path = paste0("/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/20180105 data: 42 features normalized/LSTM_20190105_normalized/LSTM_8_1_ep=100_dr=0.2_lr=0.005_l2=0_l1=0.001",
                           "/Gap_", gap, "/feature_ranking")
 fr.auc = read.csv(paste(feature_ranking_path, "AUC.csv", sep = "/"), row.names = 1)
 fr.f1 = read.csv(paste(feature_ranking_path, "F1.csv", sep = "/"), row.names = 1)
 fr.precision = read.csv(paste(feature_ranking_path, "Precision.csv", sep = "/"), row.names = 1)
 fr.recall = read.csv(paste(feature_ranking_path, "Recall.csv", sep = "/"), row.names = 1)
+rownames(fr.auc)[rownames(fr.auc) == "Temprate"] = "TEMPERATURE"
+rownames(fr.f1)[rownames(fr.f1) == "Temprate"] = "TEMPERATURE"
+rownames(fr.precision)[rownames(fr.precision) == "Temprate"] = "TEMPERATURE"
+rownames(fr.recall)[rownames(fr.recall) == "Temprate"] = "TEMPERATURE"
 
 feature_ranking_boxplot <- function(mat, sortby, my.title = "Title", my.ylabel = "AUC"){
   if (sortby == "median"){
@@ -360,31 +378,45 @@ feature_ranking_boxplot <- function(mat, sortby, my.title = "Title", my.ylabel =
     sortindex = sort.int(apply(mat, 1, mean), index.return = T, decreasing = F)$ix
   }
   mat = mat[sortindex,]
+  thecolor = palette[feature.categories[rownames(mat),]$CLASS1+1]
   mat.melt = melt(as.matrix(mat))
-  p <- ggplot(mat.melt, aes(x=Var1, y=value, fill = Var1)) + 
+  mat.melt$mycolor = thecolor[mat.melt$Var1]
+  p <- ggplot(mat.melt, aes(x=Var1, y=value, fill = mycolor)) + 
     geom_boxplot(width=0.6, color="black", size = 0.5, outlier.shape = NA) +
     theme_gray() +
     labs(title = my.title, x = "", y = my.ylabel) +
     theme(axis.text.x = element_text(size=12, angle = 45, hjust = 1),
           plot.title = element_text(size=14, face="bold", hjust = 0.5),
-          plot.subtitle = element_text(hjust = 0.5),
-          plot.margin = unit(c(0.5,0.5,1,1), "cm"),
-          legend.position="none"
+          plot.subtitle = element_text(hjust = 0.5)
+          # plot.margin = unit(c(0.5,0.5,1,1), "cm")
+          # legend.position="none"
     ) +
-    guides(fill=guide_legend(nrow=2,byrow=TRUE))
+    scale_fill_discrete(name = "Categories", labels=color_names)
+  p
   return(p)
 }
 
 
-p41 <- feature_ranking_boxplot(fr.auc[,1:5], "median", "Feature Importance (MIMIC Test Set) evaluated by AUC", "AUC")
-p42 <- feature_ranking_boxplot(fr.auc[,6:10], "median", "Feature Importance (EICU Dataet) evaluated by AUC", "AUC")
-p43 <- feature_ranking_boxplot(fr.f1[,1:5], "median", "Feature Importance (MIMIC Test Set) evaluated by F1 Score", "F1 Score")
-p44 <- feature_ranking_boxplot(fr.f1[,6:10], "median", "Feature Importance (EICU Dataet) evaluated by F1 Score", "F1 Score")
+p41 <- feature_ranking_boxplot(fr.auc[,1:5], "median",
+                               paste0("Feature Importance (MIMIC Test Set, Gap=", gap ,") evaluated by AUC"),
+                               "AUC")
+p42 <- feature_ranking_boxplot(fr.auc[,6:10], "median",
+                               paste0("Feature Importance (EICU Dataset, Gap=", gap ,") evaluated by AUC"),
+                               "AUC")
+p43 <- feature_ranking_boxplot(fr.f1[,1:5], "median",
+                               paste0("Feature Importance (MIMIC Test Set, Gap=", gap ,") evaluated by F1 Score"),
+                               "F1 Score")
+p44 <- feature_ranking_boxplot(fr.f1[,6:10], "median",
+                               paste0("Feature Importance (EICU Dataset, Gap=", gap ,") evaluated by F1 Score"),
+                               "F1 Score")
 
 
 Fig4 <- plot_grid(p41, p42, p43, p44, nrow=2, labels = c("A", "B", "C", "D"), align = "h")
 Fig4
 p43
 ggsave("Figs and Tables/Fig4.png", plot = Fig4, width = 15, height = 10, units = "in", dpi=600)
-ggsave("Figs and Tables/Fig4_MIMIC_F1.png", plot = p43, width = 15, height = 10, units = "in", dpi=600)
+ggsave("Figs and Tables/Fig4_MIMIC_AUC.png", plot = p41, width = 12, height = 6, units = "in", dpi=600)
+ggsave("Figs and Tables/Fig4_MIMIC_F1.png", plot = p43, width = 12, height = 6, units = "in", dpi=600)
+ggsave("Figs and Tables/Fig4_EICU_AUC.png", plot = p42, width = 12, height = 6, units = "in", dpi=600)
+ggsave("Figs and Tables/Fig4_EICU_F1.png", plot = p44, width = 12, height = 6, units = "in", dpi=600)
 
