@@ -1,0 +1,16 @@
+Arguments: Namespace(gap=6, results_dir='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/Traditional_20190107_normalized')
+Current model: NN, current hyper-parameter: 16, current F1 score: 0.93531851
+Current model: NN, current hyper-parameter: 32, current F1 score: 0.95895876
+Current model: NN, current hyper-parameter: 64, current F1 score: 0.97119183
+Current model: NN, current hyper-parameter: 128, current F1 score: 0.98336692
+Best hyper-parameter: 128
+Model:
+MLPClassifier(activation='relu', alpha=0, batch_size='auto', beta_1=0.9,
+       beta_2=0.999, early_stopping=False, epsilon=1e-08,
+       hidden_layer_sizes=128, learning_rate='constant',
+       learning_rate_init=0.001, max_iter=2000, momentum=0.9,
+       nesterovs_momentum=True, power_t=0.5, random_state=1, shuffle=True,
+       solver='adam', tol=0.0001, validation_fraction=0.1, verbose=False,
+       warm_start=False)
+[MIMIC] train AUC: 0.99999968, test AUC: 0.99732832, train F1: 0.99988154, test F1: 0.98724452, test Precision: 0.98969435, test Recall: 0.98488320
+[EICU] AUC: 0.67010087; Macro F1: 0.41020736; Precision: 0.55456263; Recall: 0.58695988

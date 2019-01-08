@@ -1,0 +1,8 @@
+Arguments: Namespace(gap=6, results_dir='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/Traditional_20190107_normalized')
+Current model: AdaBoost, current hyper-parameter: 16, current F1 score: 0.91195699
+Best hyper-parameter: 16
+Model:
+AdaBoostClassifier(algorithm='SAMME.R', base_estimator=None,
+          learning_rate=1.0, n_estimators=100, random_state=None)
+[MIMIC] train AUC: 0.97621472, test AUC: 0.97517426, train F1: 0.91531417, test F1: 0.91588156, test Precision: 0.91960652, test Recall: 0.91241747
+[EICU] AUC: 0.72114816; Macro F1: 0.62512070; Precision: 0.61459118; Recall: 0.64988341

@@ -1,0 +1,4 @@
+Arguments: Namespace(gap=5, results_dir='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/Traditional_20190107_normalized')
+Current model: NN, current hyper-parameter: 16, current F1 score: 0.93005903
+Current model: NN, current hyper-parameter: 32, current F1 score: 0.95742849
+Current model: NN, current hyper-parameter: 64, current F1 score: 0.97750523

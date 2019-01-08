@@ -1,0 +1,17 @@
+Arguments: Namespace(gap=5, results_dir='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/Traditional_20190107_normalized')
+Current model: logit_l1, current hyper-parameter: 0.5, current F1 score: 0.79286441
+Current model: logit_l1, current hyper-parameter: 1, current F1 score: 0.79276040
+Current model: logit_l1, current hyper-parameter: 1.5, current F1 score: 0.79266694
+Current model: logit_l1, current hyper-parameter: 2, current F1 score: 0.79312151
+Current model: logit_l1, current hyper-parameter: 2.5, current F1 score: 0.79347215
+Current model: logit_l1, current hyper-parameter: 3, current F1 score: 0.79324103
+Current model: logit_l1, current hyper-parameter: 3.5, current F1 score: 0.79338648
+Current model: logit_l1, current hyper-parameter: 4, current F1 score: 0.79332671
+Best hyper-parameter: 2.5
+Model:
+LogisticRegression(C=2.5, class_weight=None, dual=False, fit_intercept=True,
+          intercept_scaling=1, max_iter=100, multi_class='ovr', n_jobs=1,
+          penalty='l1', random_state=None, solver='liblinear', tol=0.0001,
+          verbose=0, warm_start=False)
+[MIMIC] train AUC: 0.88653390, test AUC: 0.88641048, train F1: 0.79438760, test F1: 0.79595737, test Precision: 0.81655283, test Recall: 0.78295739
+[EICU] AUC: 0.71289645; Macro F1: 0.60830223; Precision: 0.60187170; Recall: 0.65357572

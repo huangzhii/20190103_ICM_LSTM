@@ -1,0 +1,251 @@
+Arguments: Namespace(box_optunity='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/hyperparams_box_constraints.json', gap=1, l2=0, num_epochs=100, optunity_iteration=200, results_dir='/home/zhihuan/Documents/20181207_Hypoxemia/20190103_ICM_LSTM/Results/LSTM_20190107_normalized/LSTM_optunity200_ep=100_l2=0')
+Box Constraints: {'log_learning_rate': [-4, -2], 'hidden_size': [8, 12.99], 'nof_hidden_layer': [1, 2.99], 'l1_reg': [0, 0.005], 'dropout_rate': [0, 0.2]}
+Maximizing F1 score. Num_iterations: 200
+Optunity iteration: 1
+lr: 8.5505E-03; n_layers: 1; n_hidden: 8; l1_reg: 4.02E-04; dropout: 0.09
+MIMIC AUC: 0.96979393; Macro F1: 0.92789912; Precision: 0.94248621; Recall: 0.91616328
+Optunity iteration: 2
+lr: 8.7497E-04; n_layers: 2; n_hidden: 10; l1_reg: 2.88E-03; dropout: 0.19
+MIMIC AUC: 0.60302207; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 3
+lr: 4.9487E-04; n_layers: 1; n_hidden: 9; l1_reg: 2.26E-03; dropout: 0.06
+MIMIC AUC: 0.69501494; Macro F1: 0.49028591; Precision: 0.60260706; Recall: 0.59513375
+Optunity iteration: 4
+lr: 4.8361E-03; n_layers: 2; n_hidden: 11; l1_reg: 4.73E-03; dropout: 0.16
+MIMIC AUC: 0.57600697; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 5
+lr: 1.5470E-03; n_layers: 2; n_hidden: 10; l1_reg: 1.02E-03; dropout: 0.11
+MIMIC AUC: 0.84968129; Macro F1: 0.61577787; Precision: 0.83383051; Recall: 0.61493364
+Optunity iteration: 6
+lr: 1.5830E-04; n_layers: 1; n_hidden: 12; l1_reg: 3.50E-03; dropout: 0.01
+MIMIC AUC: 0.49031696; Macro F1: 0.48493984; Precision: 0.49202351; Recall: 0.49086463
+Optunity iteration: 7
+lr: 1.3728E-04; n_layers: 1; n_hidden: 10; l1_reg: 2.72E-03; dropout: 0.08
+MIMIC AUC: 0.52985438; Macro F1: 0.50599249; Precision: 0.51166303; Recall: 0.51332758
+Optunity iteration: 8
+lr: 1.3416E-03; n_layers: 2; n_hidden: 12; l1_reg: 2.47E-04; dropout: 0.18
+MIMIC AUC: 0.88705870; Macro F1: 0.80240190; Precision: 0.81554730; Recall: 0.79268209
+Optunity iteration: 9
+lr: 4.1939E-03; n_layers: 2; n_hidden: 8; l1_reg: 3.96E-03; dropout: 0.13
+MIMIC AUC: 0.82467985; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 10
+lr: 4.2916E-04; n_layers: 1; n_hidden: 11; l1_reg: 1.48E-03; dropout: 0.03
+MIMIC AUC: 0.69209725; Macro F1: 0.56788296; Precision: 0.65845985; Recall: 0.57478969
+Optunity iteration: 11
+lr: 7.5878E-04; n_layers: 2; n_hidden: 8; l1_reg: 3.34E-03; dropout: 0.11
+MIMIC AUC: 0.63013532; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 12
+lr: 7.4151E-03; n_layers: 1; n_hidden: 10; l1_reg: 8.66E-04; dropout: 0.01
+MIMIC AUC: 0.95556103; Macro F1: 0.90254421; Precision: 0.91608070; Recall: 0.89168003
+Optunity iteration: 13
+lr: 2.3720E-03; n_layers: 1; n_hidden: 9; l1_reg: 4.58E-03; dropout: 0.06
+MIMIC AUC: 0.86671186; Macro F1: 0.74484570; Precision: 0.82430279; Recall: 0.72067589
+Optunity iteration: 14
+lr: 2.4273E-04; n_layers: 2; n_hidden: 12; l1_reg: 2.10E-03; dropout: 0.16
+MIMIC AUC: 0.58253599; Macro F1: 0.41562507; Precision: 0.72275027; Recall: 0.50238992
+Optunity iteration: 15
+lr: 1.8254E-04; n_layers: 1; n_hidden: 8; l1_reg: 1.18E-03; dropout: 0.19
+MIMIC AUC: 0.48012737; Macro F1: 0.25500641; Precision: 0.38919520; Recall: 0.47553078
+Optunity iteration: 16
+lr: 1.7839E-03; n_layers: 2; n_hidden: 11; l1_reg: 3.65E-03; dropout: 0.09
+MIMIC AUC: 0.82774885; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 17
+lr: 5.5766E-03; n_layers: 2; n_hidden: 9; l1_reg: 2.41E-03; dropout: 0.04
+MIMIC AUC: 0.89156206; Macro F1: 0.81017476; Precision: 0.83122496; Recall: 0.79628768
+Optunity iteration: 18
+lr: 5.7065E-04; n_layers: 1; n_hidden: 12; l1_reg: 4.89E-03; dropout: 0.14
+MIMIC AUC: 0.75107128; Macro F1: 0.67371776; Precision: 0.67043823; Recall: 0.67831438
+Optunity iteration: 19
+lr: 3.2275E-04; n_layers: 2; n_hidden: 9; l1_reg: 5.57E-04; dropout: 0.02
+MIMIC AUC: 0.70235588; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 20
+lr: 3.1540E-03; n_layers: 1; n_hidden: 11; l1_reg: 3.03E-03; dropout: 0.12
+MIMIC AUC: 0.87796272; Macro F1: 0.78768273; Precision: 0.81474389; Recall: 0.77187039
+Optunity iteration: 21
+lr: 1.0089E-03; n_layers: 1; n_hidden: 8; l1_reg: 1.79E-03; dropout: 0.17
+MIMIC AUC: 0.81754093; Macro F1: 0.72960379; Precision: 0.76219603; Recall: 0.71449332
+Optunity iteration: 22
+lr: 1.0324E-04; n_layers: 2; n_hidden: 10; l1_reg: 4.27E-03; dropout: 0.07
+MIMIC AUC: 0.58938997; Macro F1: 0.23472426; Precision: 0.59725234; Recall: 0.50023519
+Optunity iteration: 23
+lr: 1.0371E-04; n_layers: 1; n_hidden: 9; l1_reg: 7.74E-04; dropout: 0.18
+MIMIC AUC: 0.57345935; Macro F1: 0.41779504; Precision: 0.50132479; Recall: 0.50006066
+Optunity iteration: 24
+lr: 1.0134E-03; n_layers: 2; n_hidden: 11; l1_reg: 3.25E-03; dropout: 0.08
+MIMIC AUC: 0.57930386; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 25
+lr: 3.1681E-03; n_layers: 2; n_hidden: 8; l1_reg: 2.01E-03; dropout: 0.03
+MIMIC AUC: 0.88527071; Macro F1: 0.79825352; Precision: 0.80826011; Recall: 0.79044238
+Optunity iteration: 26
+lr: 3.2419E-04; n_layers: 1; n_hidden: 10; l1_reg: 4.49E-03; dropout: 0.13
+MIMIC AUC: 0.53313410; Macro F1: 0.52377361; Precision: 0.52943933; Recall: 0.52499070
+Optunity iteration: 27
+lr: 5.7319E-04; n_layers: 2; n_hidden: 8; l1_reg: 1.56E-04; dropout: 0.01
+MIMIC AUC: 0.74564306; Macro F1: 0.43533200; Precision: 0.73530521; Recall: 0.51095998
+Optunity iteration: 28
+lr: 5.6015E-03; n_layers: 1; n_hidden: 11; l1_reg: 2.63E-03; dropout: 0.10
+MIMIC AUC: 0.90048297; Macro F1: 0.81839305; Precision: 0.84012067; Recall: 0.80402059
+Optunity iteration: 29
+lr: 1.7918E-03; n_layers: 1; n_hidden: 9; l1_reg: 1.39E-03; dropout: 0.15
+MIMIC AUC: 0.88068019; Macro F1: 0.78291255; Precision: 0.82104493; Recall: 0.76363552
+Optunity iteration: 30
+lr: 1.8336E-04; n_layers: 2; n_hidden: 12; l1_reg: 3.87E-03; dropout: 0.05
+MIMIC AUC: 0.54455796; Macro F1: 0.50480203; Precision: 0.51435703; Recall: 0.51082836
+Optunity iteration: 31
+lr: 2.4381E-04; n_layers: 1; n_hidden: 8; l1_reg: 2.94E-03; dropout: 0.09
+MIMIC AUC: 0.61685848; Macro F1: 0.52184359; Precision: 0.54277613; Recall: 0.52896529
+Optunity iteration: 32
+lr: 2.3826E-03; n_layers: 2; n_hidden: 10; l1_reg: 4.65E-04; dropout: 0.19
+MIMIC AUC: 0.91156347; Macro F1: 0.84002367; Precision: 0.85274247; Recall: 0.83017471
+Optunity iteration: 33
+lr: 7.4482E-03; n_layers: 2; n_hidden: 9; l1_reg: 4.18E-03; dropout: 0.14
+MIMIC AUC: 0.57312898; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 34
+lr: 7.6217E-04; n_layers: 1; n_hidden: 12; l1_reg: 1.70E-03; dropout: 0.04
+MIMIC AUC: 0.80221521; Macro F1: 0.72368154; Precision: 0.72880105; Recall: 0.71952113
+Optunity iteration: 35
+lr: 4.3107E-04; n_layers: 2; n_hidden: 10; l1_reg: 3.56E-03; dropout: 0.12
+MIMIC AUC: 0.60301179; Macro F1: 0.41642326; Precision: 0.57111625; Recall: 0.50161724
+Optunity iteration: 36
+lr: 4.2126E-03; n_layers: 1; n_hidden: 12; l1_reg: 1.08E-03; dropout: 0.02
+MIMIC AUC: 0.91039863; Macro F1: 0.83098143; Precision: 0.85215166; Recall: 0.81662651
+Optunity iteration: 37
+lr: 1.3476E-03; n_layers: 1; n_hidden: 8; l1_reg: 4.80E-03; dropout: 0.07
+MIMIC AUC: 0.74905127; Macro F1: 0.53734192; Precision: 0.73768750; Recall: 0.56206319
+Optunity iteration: 38
+lr: 1.3790E-04; n_layers: 2; n_hidden: 11; l1_reg: 2.32E-03; dropout: 0.17
+MIMIC AUC: 0.54987289; Macro F1: 0.43067817; Precision: 0.54939041; Recall: 0.50420984
+Optunity iteration: 39
+lr: 1.5901E-04; n_layers: 2; n_hidden: 9; l1_reg: 1.55E-03; dropout: 0.13
+MIMIC AUC: 0.60774271; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 40
+lr: 1.5539E-03; n_layers: 1; n_hidden: 11; l1_reg: 4.02E-03; dropout: 0.04
+MIMIC AUC: 0.84641277; Macro F1: 0.72710298; Precision: 0.80308713; Recall: 0.70528459
+Optunity iteration: 41
+lr: 4.8576E-03; n_layers: 1; n_hidden: 10; l1_reg: 3.10E-04; dropout: 0.09
+MIMIC AUC: 0.95470942; Macro F1: 0.90690612; Precision: 0.92096478; Recall: 0.89566779
+Optunity iteration: 42
+lr: 4.9708E-04; n_layers: 2; n_hidden: 12; l1_reg: 2.79E-03; dropout: 0.18
+MIMIC AUC: 0.71303090; Macro F1: 0.59396315; Precision: 0.68023442; Recall: 0.59387501
+Optunity iteration: 43
+lr: 8.7887E-04; n_layers: 1; n_hidden: 9; l1_reg: 2.17E-03; dropout: 0.06
+MIMIC AUC: 0.78929689; Macro F1: 0.71952814; Precision: 0.72357709; Recall: 0.71612734
+Optunity iteration: 44
+lr: 8.5887E-03; n_layers: 2; n_hidden: 12; l1_reg: 4.64E-03; dropout: 0.16
+MIMIC AUC: 0.40773573; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 45
+lr: 2.7474E-03; n_layers: 2; n_hidden: 8; l1_reg: 9.29E-04; dropout: 0.11
+MIMIC AUC: 0.89961722; Macro F1: 0.81794427; Precision: 0.82795473; Recall: 0.80998210
+Optunity iteration: 46
+lr: 2.8114E-04; n_layers: 1; n_hidden: 10; l1_reg: 3.40E-03; dropout: 0.01
+MIMIC AUC: 0.62689239; Macro F1: 0.58793620; Precision: 0.59249220; Recall: 0.58561764
+Optunity iteration: 47
+lr: 2.1143E-04; n_layers: 2; n_hidden: 10; l1_reg: 4.95E-03; dropout: 0.05
+MIMIC AUC: 0.54807488; Macro F1: 0.52637977; Precision: 0.54078493; Recall: 0.53036390
+Optunity iteration: 48
+lr: 2.0662E-03; n_layers: 1; n_hidden: 12; l1_reg: 2.48E-03; dropout: 0.15
+MIMIC AUC: 0.87586934; Macro F1: 0.77876547; Precision: 0.80993872; Recall: 0.76182170
+Optunity iteration: 49
+lr: 6.4592E-03; n_layers: 1; n_hidden: 8; l1_reg: 3.71E-03; dropout: 0.20
+MIMIC AUC: 0.89999939; Macro F1: 0.81717984; Precision: 0.83396618; Recall: 0.80527602
+Optunity iteration: 50
+lr: 6.6096E-04; n_layers: 2; n_hidden: 11; l1_reg: 1.24E-03; dropout: 0.10
+MIMIC AUC: 0.77378745; Macro F1: 0.41707368; Precision: 0.76837014; Recall: 0.50316660
+Optunity iteration: 51
+lr: 3.7383E-04; n_layers: 1; n_hidden: 8; l1_reg: 4.33E-03; dropout: 0.17
+MIMIC AUC: 0.61764966; Macro F1: 0.39407649; Precision: 0.55658342; Recall: 0.53803626
+Optunity iteration: 52
+lr: 3.6532E-03; n_layers: 2; n_hidden: 10; l1_reg: 1.86E-03; dropout: 0.07
+MIMIC AUC: 0.90189402; Macro F1: 0.82168340; Precision: 0.84308740; Recall: 0.80739614
+Optunity iteration: 53
+lr: 1.1686E-03; n_layers: 2; n_hidden: 9; l1_reg: 3.09E-03; dropout: 0.02
+MIMIC AUC: 0.74322503; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 54
+lr: 1.1958E-04; n_layers: 1; n_hidden: 11; l1_reg: 6.20E-04; dropout: 0.12
+MIMIC AUC: 0.47194260; Macro F1: 0.48829414; Precision: 0.48831333; Recall: 0.48827804
+Optunity iteration: 55
+lr: 1.2841E-04; n_layers: 2; n_hidden: 8; l1_reg: 3.48E-03; dropout: 0.06
+MIMIC AUC: 0.52663277; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 56
+lr: 1.2549E-03; n_layers: 1; n_hidden: 10; l1_reg: 1.01E-03; dropout: 0.16
+MIMIC AUC: 0.83766929; Macro F1: 0.71156894; Precision: 0.79416033; Recall: 0.69103139
+Optunity iteration: 57
+lr: 3.9230E-03; n_layers: 1; n_hidden: 9; l1_reg: 4.72E-03; dropout: 0.11
+MIMIC AUC: 0.87652783; Macro F1: 0.77836320; Precision: 0.81223972; Recall: 0.76057046
+Optunity iteration: 58
+lr: 4.0143E-04; n_layers: 2; n_hidden: 11; l1_reg: 2.24E-03; dropout: 0.01
+MIMIC AUC: 0.61421330; Macro F1: 0.41407927; Precision: 0.71427537; Recall: 0.50172523
+Optunity iteration: 59
+lr: 7.0976E-04; n_layers: 1; n_hidden: 9; l1_reg: 2.86E-03; dropout: 0.14
+MIMIC AUC: 0.74372708; Macro F1: 0.51825998; Precision: 0.68213857; Recall: 0.54837849
+Optunity iteration: 60
+lr: 6.9361E-03; n_layers: 2; n_hidden: 12; l1_reg: 3.88E-04; dropout: 0.04
+MIMIC AUC: 0.97270564; Macro F1: 0.93622025; Precision: 0.94783485; Recall: 0.92648062
+Optunity iteration: 61
+lr: 2.2188E-03; n_layers: 2; n_hidden: 8; l1_reg: 4.10E-03; dropout: 0.09
+MIMIC AUC: 0.84349925; Macro F1: 0.70722223; Precision: 0.81070407; Recall: 0.68596673
+Optunity iteration: 62
+lr: 2.2705E-04; n_layers: 1; n_hidden: 11; l1_reg: 1.63E-03; dropout: 0.19
+MIMIC AUC: 0.59329060; Macro F1: 0.45460819; Precision: 0.64367358; Recall: 0.51671538
+Optunity iteration: 63
+lr: 3.0190E-04; n_layers: 2; n_hidden: 9; l1_reg: 7.82E-05; dropout: 0.15
+MIMIC AUC: 0.68865255; Macro F1: 0.44862229; Precision: 0.65686091; Recall: 0.51482930
+Optunity iteration: 64
+lr: 2.9503E-03; n_layers: 1; n_hidden: 12; l1_reg: 2.55E-03; dropout: 0.05
+MIMIC AUC: 0.88191911; Macro F1: 0.79083639; Precision: 0.81559332; Recall: 0.77582126
+Optunity iteration: 65
+lr: 9.2228E-03; n_layers: 1; n_hidden: 8; l1_reg: 1.32E-03; dropout: 0.00
+MIMIC AUC: 0.94099934; Macro F1: 0.87368621; Precision: 0.88691081; Recall: 0.86323867
+Optunity iteration: 66
+lr: 9.4376E-04; n_layers: 2; n_hidden: 10; l1_reg: 3.79E-03; dropout: 0.10
+MIMIC AUC: 0.63343772; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 67
+lr: 5.3378E-04; n_layers: 1; n_hidden: 9; l1_reg: 6.97E-04; dropout: 0.03
+MIMIC AUC: 0.75409107; Macro F1: 0.52093100; Precision: 0.74000922; Recall: 0.55305983
+Optunity iteration: 68
+lr: 5.2163E-03; n_layers: 2; n_hidden: 11; l1_reg: 3.17E-03; dropout: 0.13
+MIMIC AUC: 0.87805335; Macro F1: 0.79263191; Precision: 0.80779833; Recall: 0.78194285
+Optunity iteration: 69
+lr: 1.6686E-03; n_layers: 2; n_hidden: 10; l1_reg: 1.93E-03; dropout: 0.18
+MIMIC AUC: 0.84067694; Macro F1: 0.49909546; Precision: 0.79336676; Recall: 0.54334633
+Optunity iteration: 70
+lr: 1.7075E-04; n_layers: 1; n_hidden: 12; l1_reg: 4.41E-03; dropout: 0.08
+MIMIC AUC: 0.47997558; Macro F1: 0.48412215; Precision: 0.48741065; Recall: 0.48608514
+Optunity iteration: 71
+lr: 1.4808E-04; n_layers: 1; n_hidden: 10; l1_reg: 4.25E-03; dropout: 0.02
+MIMIC AUC: 0.55215281; Macro F1: 0.50529825; Precision: 0.53381209; Recall: 0.51967254
+Optunity iteration: 72
+lr: 1.4471E-03; n_layers: 2; n_hidden: 12; l1_reg: 1.78E-03; dropout: 0.12
+MIMIC AUC: 0.84711462; Macro F1: 0.68324066; Precision: 0.80991678; Recall: 0.66526037
+Optunity iteration: 73
+lr: 4.5236E-03; n_layers: 2; n_hidden: 9; l1_reg: 3.02E-03; dropout: 0.17
+MIMIC AUC: 0.86407417; Macro F1: 0.77824099; Precision: 0.80341897; Recall: 0.76343190
+Optunity iteration: 74
+lr: 4.6290E-04; n_layers: 1; n_hidden: 11; l1_reg: 5.42E-04; dropout: 0.07
+MIMIC AUC: 0.79633507; Macro F1: 0.58297417; Precision: 0.80933180; Recall: 0.59260377
+Optunity iteration: 75
+lr: 8.1844E-04; n_layers: 2; n_hidden: 8; l1_reg: 4.87E-03; dropout: 0.19
+MIMIC AUC: 0.61047439; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 76
+lr: 7.9981E-03; n_layers: 1; n_hidden: 11; l1_reg: 2.40E-03; dropout: 0.09
+MIMIC AUC: 0.92557741; Macro F1: 0.85178616; Precision: 0.86523774; Recall: 0.84138014
+Optunity iteration: 77
+lr: 2.5585E-03; n_layers: 1; n_hidden: 9; l1_reg: 3.64E-03; dropout: 0.05
+MIMIC AUC: 0.87272637; Macro F1: 0.77117763; Precision: 0.81295003; Recall: 0.75150340
+Optunity iteration: 78
+lr: 2.6181E-04; n_layers: 2; n_hidden: 12; l1_reg: 1.16E-03; dropout: 0.14
+MIMIC AUC: 0.62574925; Macro F1: 0.49988240; Precision: 0.59082350; Recall: 0.53056934
+Optunity iteration: 79
+lr: 1.9690E-04; n_layers: 1; n_hidden: 8; l1_reg: 2.09E-03; dropout: 0.11
+MIMIC AUC: 0.59141335; Macro F1: 0.44276235; Precision: 0.56555669; Recall: 0.50819476
+Optunity iteration: 80
+lr: 1.9241E-03; n_layers: 2; n_hidden: 11; l1_reg: 4.56E-03; dropout: 0.01
+MIMIC AUC: 0.66417965; Macro F1: 0.40984986; Precision: 0.34724203; Recall: 0.50000000
+Optunity iteration: 81
+lr: 6.0150E-03; n_layers: 2; n_hidden: 10; l1_reg: 8.52E-04; dropout: 0.06
+MIMIC AUC: 0.94763771; Macro F1: 0.88726385; Precision: 0.89870629; Recall: 0.87790216
+Optunity iteration: 82
+lr: 6.1551E-04; n_layers: 1; n_hidden: 12; l1_reg: 3.33E-03; dropout: 0.16
+MIMIC AUC: 0.74509423; Macro F1: 0.64706405; Precision: 0.69395496; Recall: 0.63679795
+Optunity iteration: 83
+lr: 3.4813E-04; n_layers: 2; n_hidden: 9; l1_reg: 1.47E-03; dropout: 0.08

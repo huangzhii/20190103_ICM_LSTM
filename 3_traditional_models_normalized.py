@@ -69,10 +69,10 @@ if __name__=='__main__':
         if mtd == "logit_l2": # around 4 mins for all folds
             regr = LogisticRegression(penalty='l2', C=4) # 4.2
         if mtd == "NN": # around 2 mins for all folds
-            regr = MLPClassifier(solver='adam', alpha=1e-5, max_iter=2000, # alpha is L2 reg
+            regr = MLPClassifier(solver='adam', alpha=0, max_iter=2000, # alpha is L2 reg
                                  hidden_layer_sizes=(64), random_state=1)
         if mtd == "NN_l2": # around 2 mins for all folds
-            regr = MLPClassifier(solver='adam', alpha=0, max_iter=2000, # alpha is L2 reg
+            regr = MLPClassifier(solver='adam', alpha=1e-5, max_iter=2000, # alpha is L2 reg
                                  hidden_layer_sizes=(64), random_state=1)
         if mtd == "SVC": # Too slow! cost at least 3 hours for one fold!
             regr = SVC(kernel='linear', C=1, probability = True)

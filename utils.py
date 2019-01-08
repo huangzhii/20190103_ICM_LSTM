@@ -65,10 +65,6 @@ def crop_reshape(X, y, series, gap):
     cols2keep = [X.columns.get_loc(c) for c in X.columns if c not in cols2keep]
     cols2keep_names = X.columns[cols2keep].values
     X_np = X.values.astype(float)
-# =============================================================================
-#     Normalization
-# =============================================================================
-#    X_np = scale(X_np, axis=0, with_mean=True, with_std=True, copy=True)
     
 # =============================================================================
 #     Reshape
